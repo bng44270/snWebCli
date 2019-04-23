@@ -12,6 +12,7 @@
 		selectionId : parentDiv + '_selection',
 		cmds : [],
 		scheduledTasks : [],
+		runningTasks : false,
 		waitTask : {
 			active : false
 		},
@@ -79,6 +80,7 @@ DomTerm.prototype = {
 				task:taskId
 			};
 		});
+		this.settings.runningTasks = true;
 	},
 	stopScheduledTasks : function() {
 		this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
@@ -89,6 +91,7 @@ DomTerm.prototype = {
 				help:thisTask.help
 			};
 		});
+		this.settings.runningTasks = false;
 	},
 	addCommand : function(cmdName,cmdFunction,helpData) {
 		if (this.existCommand(cmdName).length == 0) {
@@ -218,27 +221,49 @@ function LoadTerm(id) {
 	});
 	
 	snCli.addCommand('task-info',function() {
+		if (snCli.getScheduledTaskCount() > 0) {
 		var taskAr = [];
 		for (var i = 0; i < snCli.settings.scheduledTasks.length; i++) {
 			taskAr.push(i.toString() + ': ' + snCli.settings.scheduledTasks[i].help.description);
 		}
 		snCli.showOutput(taskAr.join('\n'));
+		}
+		else {
+			snCli.showOutput('No tasks available');
+		}
 	},{
 		description : 'Display scheduled task information',
 		usage : 'task-info'
 	});
 	
 	snCli.addCommand('start-tasks',function() {
-		snCli.showOutput('Starting ' + myTerm.getScheduledTaskCount().toString() + ' tasks');
-		snCli.startScheduledTasks();
+		if (snCli.getScheduledTaskCount() > 0) {
+			if (snCli.settings.runningTasks) {
+				snCli.showOutput('Tasks are already running');
+			}
+			else {
+				snCli.showOutput('Starting ' + snCli.getScheduledTaskCount().toString() + ' tasks');
+				snCli.startScheduledTasks();
+				snCli.settings.runningTasks = true;
+			}
+		}
+		else {
+			snCli.showOutput('No tasks available to run');
+		}
 	},{
 		description : 'Starts all scheduled tasks',
 		usage : 'start-tasks'
 	});
 	
 	snCli.addCommand('stop-tasks',function() {
-		snCli.showOutput('Stopping ' + myTerm.getScheduledTaskCount().toString() + ' tasks');
-		snCli.stopScheduledTasks();
+		if (snCli.settings.runningTasks) {
+			snCli.showOutput('Stopping ' + snCli.getScheduledTaskCount().toString() + ' tasks');
+			snCli.stopScheduledTasks();
+			snCli.settings.runningTasks = false;
+		}
+		else {
+			snCli.showOutput('Tasks are not running');
+		}
 	},{
 		description : 'Stops all scheduled tasks',
 		usage : 'stop-tasks'
@@ -297,13 +322,13 @@ function ClickStart() {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-23 15:34:50</sys_created_on>
         <sys_id>4d2cbf60db81330082269fd2ca961959</sys_id>
-        <sys_mod_count>59</sys_mod_count>
+        <sys_mod_count>62</sys_mod_count>
         <sys_name>run_terminal</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy/>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_ui_page_4d2cbf60db81330082269fd2ca961959</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-23 20:40:21</sys_updated_on>
+        <sys_updated_on>2019-04-23 20:57:28</sys_updated_on>
     </sys_ui_page>
 </record_update>
