@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_293397_web_cli.ConfigureCLI</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>ConfigureCLI</name>
+        <script><![CDATA[var ConfigureCLI = Class.create();
+ConfigureCLI.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+	loadProfile : function() {		
+		var profileUniqueId = this.getParameter('sysparm_cli_profile_sys_id');
+		
+		//************
+		// Command List
+		var commandList = [];
+		
+		var profileCommandGr = new GlideRecord("x_293397_web_cli_m2m_profiles_commands");
+		profileCommandGr.addQuery("profiles",profileUniqueId);
+		profileCommandGr.query();
+		while (profileCommandGr.next()) {
+			var cmdGr = new GlideRecord("x_293397_web_cli_commands");
+			cmdGr.addQuery("active", true);
+			cmdGr.addQuery("sys_id",profileCommandGr.getValue('commands'));
+			cmdGr.query();
+			if (cmdGr.next()) {
+				commandList.push({
+					name:cmdGr.getValue('name'),
+					script:cmdGr.getValue('script'),
+					description:cmdGr.getValue('description'),
+					usage:cmdGr.getValue('usage')
+				});
+			}
+		}
+		gs.info('COMMANDS:  ' + JSON.stringify(commandList));
+		//************
+		
+		//************
+		// Task List
+		var taskList = [];
+		
+		var profileTaskGr = new GlideRecord("x_293397_web_cli_m2m_profiles_scheduled_tasks");
+		profileTaskGr.addQuery("profiles",profileUniqueId);
+		profileTaskGr.query();
+		while (profileTaskGr.next()) {
+			var taskGr = new GlideRecord("x_293397_web_cli_scheduled_tasks");
+			taskGr.addQuery("active", true);
+			taskGr.addQuery("sys_id",profileTaskGr.getValue('scheduled_tasks'));
+			taskGr.query();
+			if (taskGr.next()) {
+				taskList.push({
+					script:taskGr.getValue('script'),
+					description:taskGr.getValue('description'),
+					interval:taskGr.getValue('interval')
+				});
+			}
+		}
+		gs.info('TASKS:  ' + JSON.stringify(taskList));
+		//************
+		
+		var returnValue = {
+			success : (commandList.length > 0 || taskList.length > 0) ? true : false,
+			commands : commandList,
+			tasks : taskList
+		};
+		
+		return JSON.stringify(returnValue);
+	},
+	type: 'ConfigureCLI'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-04-23 15:06:21</sys_created_on>
+        <sys_id>8802b3e8db41330082269fd2ca9619ff</sys_id>
+        <sys_mod_count>23</sys_mod_count>
+        <sys_name>ConfigureCLI</sys_name>
+        <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
+        <sys_update_name>sys_script_include_8802b3e8db41330082269fd2ca9619ff</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-04-23 19:53:51</sys_updated_on>
+    </sys_script_include>
+</record_update>

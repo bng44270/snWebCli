@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[function DomTerm(parentDiv) {
+	this.settings = {
+		consoleSize : [80,20],
+		backgroundColor : '#ffffff',
+		foregroundColor : '#000000',
+			container : parentDiv,
+		displayId : parentDiv + '_termDisplay',
+		inputId : parentDiv + '_termInput',
+		selectionId : parentDiv + '_selection',
+		cmds : [],
+		scheduledTasks : [],
+		waitTask : {
+			active : false
+		},
+		consoleEcho : false,
+		selection : false
+	};
+}
+
+DomTerm.prototype = {
+	boot : function() {
+		this.drawTerm();
+	},
+	drawTerm : function() {
+		var htmlContent = '<input type="text" id="' + this.settings.inputId + '" style="width:520px;border:none;" /><br/>';
+		htmlContent += '<pre id="' + this.settings.displayId + '" style="width:520px;overflow-y:scroll;height:400px;outline:none;resize: both;overflow: auto;"></pre><br/>';
+		htmlContent += '<input type="button" id="' + this.settings.selectionId + '" value="Turn Selection Mode On" />';
+		document.getElementById(this.settings.container).innerHTML = htmlContent;
+		document.getElementById(this.settings.inputId).addEventListener('keyup',this.handleInput.bind(this),false);
+		document.getElementById(this.settings.displayId).addEventListener('mouseup',this.resizeDisplay.bind(this),false);
+		document.getElementById(this.settings.selectionId).addEventListener('click',this.toggleSelection.bind(this),false);
+		document.getElementById(this.settings.inputId).focus();
+	},
+	toggleSelection : function(event) {
+		if (this.settings.selection) {
+			this.settings.selection = false;
+			document.getElementById(this.settings.selectionId).value = 'Turn Selection Mode On';
+		}
+		else {
+			this.settings.selection = true;
+			document.getElementById(this.settings.selectionId).value = 'Turn Selection Mode Off';
+		}
+		document.getElementById(this.settings.inputId).focus();
+	},
+	resizeDisplay : function(event) {
+		document.getElementById(this.settings.inputId).style.width = document.getElementById(this.settings.displayId).style.width;
+		if (!this.settings.selection) {
+			document.getElementById(this.settings.inputId).focus();
+		}
+	},
+	clearConsole : function() {
+		document.getElementById(this.settings.displayId).innerHTML = '';
+	},
+	showOutput : function(outputText) {
+		document.getElementById(this.settings.displayId).innerHTML = outputText + '\n' + document.getElementById(this.settings.displayId).innerHTML;
+	},
+	addScheduledTask : function(taskFunction,taskSeconds,helpData) {
+		this.settings.scheduledTasks.push({
+			run:taskFunction,
+			interval:taskSeconds*1000,
+			help:helpData
+		});
+	},
+	getScheduledTaskCount : function () {
+		return this.settings.scheduledTasks.length;
+	},
+	startScheduledTasks : function() {
+		this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
+			var taskId = window.setInterval(function() {
+				thisTask.run.call(this);
+			},thisTask.interval);
+			return {
+				run:thisTask.run,
+				interval:thisTask.interval,
+				help:thisTask.help,
+				task:taskId
+			};
+		});
+	},
+	stopScheduledTasks : function() {
+		this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
+			window.clearInterval(thisTask.task);
+			return {
+				run:thisTask.run,
+				interval:thisTask.interval,
+				help:thisTask.help
+			};
+		});
+	},
+	addCommand : function(cmdName,cmdFunction,helpData) {
+		if (this.existCommand(cmdName).length == 0) {
+			this.settings.cmds.push({
+				name:cmdName,
+				run:cmdFunction,
+				help:helpData
+			});
+		}
+	},
+	existCommand : function(cmdName) {
+		return this.settings.cmds.filter(function(command) {
+			return command.name == cmdName;
+		});
+	},
+	addWaitTask : function(waitFunction) {
+		this.settings.waitTask = {
+			run : waitFunction,
+			active : true
+		};
+	},
+	resetWaitTask : function() {
+		this.settings.waitTask = {
+			active : false
+		};
+	},
+	handleInput : function(event) {
+		if (event.keyCode == 13) {
+			var inputText = document.getElementById(this.settings.inputId).value;
+			if (inputText.length > 0) {
+				if (this.settings.waitTask.active) {
+					if (this.settings.consoleEcho) this.showOutput('> ' + inputText);
+						this.settings.waitTask.run(inputText);
+				}
+				else {
+					var rootCmd = inputText.replace(/^([^ \t]+).*$/,"$1");
+					if (this.existCommand(rootCmd).length > 0) {
+						if (this.settings.consoleEcho) this.showOutput('> ' + inputText);
+							this.settings.cmds.filter(function(command) {
+							return command.name == rootCmd;
+						})[0].run(inputText);
+					}
+					else {
+						this.showOutput('Command not found (' + rootCmd + ')');
+					}
+				}
+				document.getElementById(this.settings.inputId).value = '';
+			}
+		}
+	}
+};
+
+DomTerm.prototype.constructor = DomTerm;
+
+var snCli = null;
+
+var terminalProfile = window.location.search.substr(1).split('&').map(function(itm) {
+	var returnValue = '';
+	var itmAr = itm.split('=');
+	if (itmAr[0] == 'sysparm_terminal_profile') {
+		returnValue = itmAr[1];
+	}
+	return returnValue;
+})[0];
+
+function LoadTerm(id) {
+	snCli = new DomTerm('myterminal');
+	
+	snCli.addCommand('clear',function(command) {
+		snCli.clearConsole();
+	},{
+		description : 'Clears contents of console',
+		usage : 'clear'
+	});
+	
+	snCli.addCommand('info',function(command) {
+		snCli.showOutput('Configuration Loaded:\n  ' + snCli.settings.cmds.length.toString() + ' commands\n  ' + snCli.settings.scheduledTasks.length.toString() + ' scheduled tasks');
+	},{
+		description : 'Display terminal information',
+		usage : 'info'
+	});
+	
+	snCli.addCommand('echo',function(command) {
+		command = command.replace(/^echo[ \t]*/,'');
+		if (command == 'on') {
+			snCli.settings.consoleEcho = true;
+			snCli.showOutput('echo is on');
+		}
+		else if (command == 'off') {
+			snCli.settings.consoleEcho = false;
+			snCli.showOutput('echo is off');
+		}
+		else if (command.length == 0) {
+			snCli.showOutput('echo is ' + ((snCli.settings.consoleEcho) ? 'on' : 'off'));
+		}
+		else {
+			snCli.showOutput('Invalid echo option (' + command + ')');
+		}
+	},{
+		description : 'Change command echo functionality',
+		usage : 'echo &lt;on|off&gt;'
+	});
+	
+	snCli.addCommand('help',function(input) {
+		input = input.replace(/^help[ \t]*/,'');
+		
+		if (input.length > 0) {
+			var commandData = snCli.settings.cmds.filter(function(thisCmd) {
+				return thisCmd.name == input;
+			});
+			
+			if (commandData.length == 1) {
+				snCli.showOutput(commandData[0].help.description + '\nusage: ' + commandData[0].help.usage + '\n');
+			}
+			else {
+				snCli.showOutput('Command not found (' + input + ')');
+			}
+		}
+		else {
+			snCli.showOutput('Available commands:\n' + snCli.settings.cmds.map(function(itm) {
+				return "   " + itm.name;
+			}).sort().join('\n'));
+		}
+	},{
+		description : 'Show help information',
+		usage : 'help [&lt;command&gt;]'
+	});
+	
+	snCli.addCommand('task-info',function() {
+		var taskAr = [];
+		for (var i = 0; i < snCli.settings.scheduledTasks.length; i++) {
+			taskAr.push(i.toString() + ': ' + snCli.settings.scheduledTasks[i].help.description);
+		}
+		snCli.showOutput(taskAr.join('\n'));
+	},{
+		description : 'Display scheduled task information',
+		usage : 'task-info'
+	});
+	
+	snCli.addCommand('start-tasks',function() {
+		snCli.showOutput('Starting ' + myTerm.getScheduledTaskCount().toString() + ' tasks');
+		snCli.startScheduledTasks();
+	},{
+		description : 'Starts all scheduled tasks',
+		usage : 'start-tasks'
+	});
+	
+	snCli.addCommand('stop-tasks',function() {
+		snCli.showOutput('Stopping ' + myTerm.getScheduledTaskCount().toString() + ' tasks');
+		snCli.stopScheduledTasks();
+	},{
+		description : 'Stops all scheduled tasks',
+		usage : 'stop-tasks'
+	});
+	
+	var cmdAr = [];
+	var taskAr = [];
+	
+	var configureCliApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
+	configureCliApi.addParam('sysparm_name','loadProfile');
+	configureCliApi.addParam('sysparm_cli_profile_sys_id',terminalProfile);
+	configureCliApi.getXML(function(response) {
+		var cliData = JSON.parse(response.responseXML.documentElement.getAttribute('answer'));
+		if (cliData.success) {
+			cliData.commands.forEach(function(thisCommand) {
+				snCli.addCommand(thisCommand.name,function() {
+					eval(thisCommand.script);
+				},{
+					description : thisCommand.description,
+					usage : thisCommand.usage
+				});
+			});
+			cliData.tasks.forEach(function(thisTask) {
+				myTerm.addScheduledTask(function() {
+					eval(thisTask.script);
+				},thisTask.interval,{
+					description : thisTask.description
+				});
+			});
+		}
+	});
+	
+	snCli.boot();
+}
+
+function ClickStart() {
+	if (!snCli && terminalProfile) {
+		document.getElementById('start_term_link').style.display = 'none';
+		LoadTerm();
+	}
+	else {
+		document.getElementById('start_term_link').value = "Error: Terminal profile required";
+	}
+}]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_293397_web_cli_run_terminal.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<input type="text" onFocus="ClickStart();" id="start_term_link" value="Type commands here" style="width:520px;" />
+	<div id="myterminal"></div>
+</j:jelly>]]></html>
+        <name>run_terminal</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-04-23 15:34:50</sys_created_on>
+        <sys_id>4d2cbf60db81330082269fd2ca961959</sys_id>
+        <sys_mod_count>59</sys_mod_count>
+        <sys_name>run_terminal</sys_name>
+        <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
+        <sys_update_name>sys_ui_page_4d2cbf60db81330082269fd2ca961959</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-04-23 20:40:21</sys_updated_on>
+    </sys_ui_page>
+</record_update>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Scheduled Tasks" max_length="40" name="x_293397_web_cli_scheduled_tasks" type="collection">
+        <element label="Description" max_length="40" name="description" type="string"/>
+        <element label="Interval" max_length="40" name="interval" type="integer"/>
+        <element display="true" label="Label" max_length="40" name="label" type="string"/>
+        <element label="Name" max_length="40" name="name" type="string"/>
+        <element label="Script" max_length="8000" name="script" type="script"/>
+    </element>
+</database>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Profiles" max_length="40" name="x_293397_web_cli_profiles" type="collection">
+        <element label="Label" max_length="40" name="label" type="string"/>
+        <element display="true" label="Name" max_length="40" name="name" type="string"/>
+    </element>
+</database>
