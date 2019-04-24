@@ -11,15 +11,15 @@
         <owner_condition/>
         <sys_class_name>ua_table_licensing_config</sys_class_name>
         <sys_created_by>admin</sys_created_by>
-        <sys_created_on>2019-04-23 13:20:50</sys_created_on>
-        <sys_id>14ee172cdb01330082269fd2ca9619b5</sys_id>
+        <sys_created_on>2019-04-24 02:33:41</sys_created_on>
+        <sys_id>e654de38db09330082269fd2ca9619b8</sys_id>
         <sys_mod_count>0</sys_mod_count>
         <sys_name>x_293397_web_cli_profiles</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy/>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
-        <sys_update_name>ua_table_licensing_config_14ee172cdb01330082269fd2ca9619b5</sys_update_name>
+        <sys_update_name>ua_table_licensing_config_e654de38db09330082269fd2ca9619b8</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-23 13:20:50</sys_updated_on>
+        <sys_updated_on>2019-04-24 02:33:41</sys_updated_on>
     </ua_table_licensing_config>
 </record_update>
