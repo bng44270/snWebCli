@@ -2,61 +2,59 @@
     <sys_script_include action="INSERT_OR_UPDATE">
         <access>package_private</access>
         <active>true</active>
-        <api_name>x_293397_web_cli.ServerCLI</api_name>
+        <api_name>x_293397_web_cli.WebCLIServer</api_name>
         <caller_access/>
         <client_callable>true</client_callable>
         <description/>
-        <name>ServerCLI</name>
-        <script><![CDATA[var ServerCLI = Class.create();
-ServerCLI.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
-	callCodeEntry : function() {
-		var returnValue = "";
+        <name>WebCLIServer</name>
+        <script><![CDATA[var WebCLIServer = Class.create();
+WebCLIServer.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+	getIncidentCount : function() {
+		var returnValue = 0;
 		
-		var serverCodeName = this.getParameter('sysparm_cli_server_code_entry');
-		var profileSysId = this.getParameter('sysparm_cli_profile_sys_id');
+		var count = new GlideAggregate('incident');
+		count.addAggregate('COUNT');
+		count.addQuery('active',true);
+		count.query();
 		
-		var codeGr = new GlideRecord("x_293397_web_cli_code_entries");
-		codeGr.addQuery('active',true);
-		codeGr.addQuery('name',serverCodeName);
-		codeGr.query();
-		if (codeGr.next()) {
-			if (this.isCodeInProfile(profileSysId,codeGr.getUniqueValue())) {
-				returnValue = true;
-				eval(codeGr.getValue('script'));
-			}
-			else {
-				returnValue = "Server commmand not available in profile (" + profileSysId + "," + serverCodeName + ")";
-			}
+		if (count.next()) {
+			returnValue = count.getAggregate('COUNT');
 		}
-		else {
-			returnValue = "Server commmand not found (" + serverCodeName + ")";
-		}
+		
 		return returnValue;
 	},
-	isCodeInProfile : function(profileUniqueId, codeUniqueId) {
-		var returnValue = false;
-		var profileGr = new GlideRecord("x_293397_web_cli_m2m_profiles_code_entries");
-		profileGr.addQuery("profiles",profileUniqueId);
-		profileGr.addQuery("code_entries",codeUniqueId);
-		profileGr.query();
-		if (profileGr.next()) {
-			returnValue = true;
+	runSelectQuery : function() {
+		var table = this.getParameter('sysparm_cli_select_table');
+		var fields = this.getParameter('sysparm_cli_select_fields');
+		var filter = this.getParameter('sysparm_cli_select_filter');
+		
+		var returnValue = [];
+		
+		var gr = new GlideRecord(table);
+		gs.info(filter);
+		if (filter.length > 0)
+			gr.addEncodedQuery(filter);
+		gr.query();
+		while (gr.next()) {
+			returnValue.push(fields.split(',').map(function(thisItm) {
+				return gr.getValue(thisItm);
+			}));
 		}
-		return returnValue;
+		return JSON.stringify(returnValue);
 	},
-	type: 'ServerCLI'
+	type: 'WebCLIServer'
 });]]></script>
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-24 20:43:02</sys_created_on>
         <sys_id>344a824ddb05330082269fd2ca961918</sys_id>
-        <sys_mod_count>0</sys_mod_count>
-        <sys_name>ServerCLI</sys_name>
+        <sys_mod_count>55</sys_mod_count>
+        <sys_name>WebCLIServer</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_script_include_344a824ddb05330082269fd2ca961918</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-24 20:43:02</sys_updated_on>
+        <sys_updated_on>2019-04-25 19:57:26</sys_updated_on>
     </sys_script_include>
 </record_update>

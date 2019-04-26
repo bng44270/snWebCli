@@ -2,16 +2,15 @@
     <element label="Code Entries" max_length="40" name="x_293397_web_cli_code_entries" type="collection">
         <element label="Active" max_length="40" name="active" type="boolean"/>
         <element label="Description" max_length="40" name="description" type="string"/>
-        <element label="Label" max_length="40" name="label" type="string"/>
+        <element display="true" label="Label" max_length="40" name="label" type="string"/>
         <element label="Name" max_length="40" name="name" type="string"/>
         <element label="Script" max_length="8000" name="script" type="script"/>
-        <element choice="1" display="true" label="Type" max_length="40" name="type" type="choice">
+        <element choice="1" label="Type" max_length="40" name="type" type="choice">
             <choice>
                 <element inactive_on_update="false" label="Command" sequence="1" value="1"/>
                 <element inactive_on_update="false" label="Scheduled Task" sequence="2" value="2"/>
-                <element inactive_on_update="false" label="Server Code" sequence="3" value="3"/>
             </choice>
         </element>
-        <element label="Usage" max_length="40" name="usage" type="string"/>
+        <element label="Usage" max_length="200" name="usage" type="string"/>
     </element>
 </database>

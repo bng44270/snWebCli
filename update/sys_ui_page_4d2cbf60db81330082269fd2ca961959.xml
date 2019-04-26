@@ -17,7 +17,9 @@
 			active : false
 		},
 		consoleEcho : false,
-		selection : false
+		selection : false,
+		history : [],
+		skipClearCommand : false
 	};
 }
 
@@ -67,6 +69,9 @@ DomTerm.prototype = {
 	},
 	getScheduledTaskCount : function () {
 		return this.settings.scheduledTasks.length;
+	},
+	setCommandText : function(cmdText) {
+		document.getElementById(this.settings.inputId).value = cmdText;
 	},
 	startScheduledTasks : function() {
 		this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
@@ -121,6 +126,7 @@ DomTerm.prototype = {
 	handleInput : function(event) {
 		if (event.keyCode == 13) {
 			var inputText = document.getElementById(this.settings.inputId).value;
+			this.settings.history.push(inputText);
 			if (inputText.length > 0) {
 				if (this.settings.waitTask.active) {
 					if (this.settings.consoleEcho) this.showOutput('> ' + inputText);
@@ -138,7 +144,12 @@ DomTerm.prototype = {
 						this.showOutput('Command not found (' + rootCmd + ')');
 					}
 				}
-				document.getElementById(this.settings.inputId).value = '';
+				if (this.settings.skipClearCommand) {
+					this.settings.skipClearCommand = false;
+				}
+				else {
+					document.getElementById(this.settings.inputId).value = '';
+				}
 			}
 		}
 	}
@@ -220,13 +231,35 @@ function LoadTerm(id) {
 		usage : 'help [&lt;command&gt;]'
 	});
 	
+	snCli.addCommand('history',function() {
+		for (var i = 0; i < snCli.settings.history.length; i++) {
+			snCli.showOutput((i+1).toString() + ': ' + snCli.settings.history[i]);
+		}
+	},{
+		description : 'Show command history',
+		usage : 'history'
+	});
+	
+	snCli.addCommand('rerun',function(command) {
+		command = command.replace(/^rerun[ \t]*/,"");
+		
+		var cmdIdx = eval(command) - 1;
+		if (cmdIdx <= snCli.settings.history.length) {
+			snCli.setCommandText(snCli.settings.history[cmdIdx]);
+			this.settings.skipClearCommand = true;
+		}
+	},{
+		description : "Rerun command listed in history",
+		usage : "rerun &lt;history-id&gt;"
+	});
+	
 	snCli.addCommand('task-info',function() {
 		if (snCli.getScheduledTaskCount() > 0) {
-		var taskAr = [];
-		for (var i = 0; i < snCli.settings.scheduledTasks.length; i++) {
-			taskAr.push(i.toString() + ': ' + snCli.settings.scheduledTasks[i].help.description);
-		}
-		snCli.showOutput(taskAr.join('\n'));
+			var taskAr = [];
+			for (var i = 0; i < snCli.settings.scheduledTasks.length; i++) {
+				taskAr.push(i.toString() + ': ' + snCli.settings.scheduledTasks[i].help.description);
+			}
+			snCli.showOutput(taskAr.join('\n'));
 		}
 		else {
 			snCli.showOutput('No tasks available');
@@ -279,7 +312,7 @@ function LoadTerm(id) {
 		var cliData = JSON.parse(response.responseXML.documentElement.getAttribute('answer'));
 		if (cliData.success) {
 			cliData.commands.forEach(function(thisCommand) {
-				snCli.addCommand(thisCommand.name,function() {
+				snCli.addCommand(thisCommand.name,function(input) {
 					eval(thisCommand.script);
 				},{
 					description : thisCommand.description,
@@ -322,13 +355,13 @@ function ClickStart() {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-23 15:34:50</sys_created_on>
         <sys_id>4d2cbf60db81330082269fd2ca961959</sys_id>
-        <sys_mod_count>62</sys_mod_count>
+        <sys_mod_count>77</sys_mod_count>
         <sys_name>run_terminal</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy/>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_ui_page_4d2cbf60db81330082269fd2ca961959</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-23 20:57:28</sys_updated_on>
+        <sys_updated_on>2019-04-26 12:50:39</sys_updated_on>
     </sys_ui_page>
 </record_update>
