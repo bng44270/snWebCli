@@ -9,6 +9,19 @@
         <name>ConfigureCLI</name>
         <script><![CDATA[var ConfigureCLI = Class.create();
 ConfigureCLI.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+	getProfileList : function() {
+		var returnValue = [];
+		var gr = new GlideRecord("x_293397_web_cli_profiles");
+		gr.query();
+		while (gr.next()) {
+			returnValue.push({
+				label : gr.getValue('label'),
+				sysid : gr.getValue('sys_id')
+			});
+		}
+		gs.info(JSON.stringify(returnValue));
+		return JSON.stringify(returnValue);
+	},
 	loadProfile : function() {
 		var profileUniqueId = this.getParameter('sysparm_cli_profile_sys_id');
 		
@@ -56,13 +69,13 @@ ConfigureCLI.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-23 15:06:21</sys_created_on>
         <sys_id>8802b3e8db41330082269fd2ca9619ff</sys_id>
-        <sys_mod_count>26</sys_mod_count>
+        <sys_mod_count>30</sys_mod_count>
         <sys_name>ConfigureCLI</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_script_include_8802b3e8db41330082269fd2ca9619ff</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-25 18:09:16</sys_updated_on>
+        <sys_updated_on>2019-04-26 14:08:18</sys_updated_on>
     </sys_script_include>
 </record_update>
