@@ -13,20 +13,24 @@
 		cmds : [],
 		scheduledTasks : [],
 		runningTasks : false,
-		waitTask : {
+		inputTask : {
 			active : false
 		},
 		consoleEcho : false,
 		selection : false,
 		history : [],
 		currentHistoryItem : -1,
-		skipClearCommand : false
+		skipClearCommand : false,
+		waitLabel : '',
+		scripts : []
 	};
 }
 
 DomTerm.prototype = {
 	boot : function() {
 		this.drawTerm();
+		document.getElementById(this.settings.inputId).style.width = (document.body.scrollWidth - 30).toString() + 'px';
+		document.getElementById(this.settings.displayId).style.width = (document.body.scrollWidth - 30).toString() + 'px';
 	},
 	drawTerm : function() {
 		var htmlContent = '<input autocomplete="off" type="text" id="' + this.settings.inputId + '" style="width:520px;border:none;" /><br/>';
@@ -61,6 +65,10 @@ DomTerm.prototype = {
 	showOutput : function(outputText) {
 		document.getElementById(this.settings.displayId).innerHTML = outputText + '\n' + document.getElementById(this.settings.displayId).innerHTML;
 	},
+	replaceConosleText : function(origText,replaceWith) {
+		var consoleText = document.getElementById(this.settings.displayId).innerHTML;
+		document.getElementById(this.settings.displayId).innerHTML = consoleText.replace(origText,replaceWith);
+	},
 	addScheduledTask : function(taskFunction,taskSeconds,helpData) {
 		this.settings.scheduledTasks.push({
 			run:taskFunction,
@@ -73,6 +81,9 @@ DomTerm.prototype = {
 	},
 	setCommandText : function(cmdText) {
 		document.getElementById(this.settings.inputId).value = cmdText;
+	},
+	getCommandText : function() {
+		return document.getElementById(this.settings.inputId).value;
 	},
 	startScheduledTasks : function() {
 		this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
@@ -99,6 +110,41 @@ DomTerm.prototype = {
 		});
 		this.settings.runningTasks = false;
 	},
+	addScript : function(scriptName,cmdAr, scriptDescr) {
+		this.settings.scripts.push({
+			name : scriptName,
+			description : scriptDescr,
+			commands : cmdAr
+		});
+	},
+	runScript : function(scriptName) {
+		if (this.existScript(scriptName)) {
+			var scriptCommands = this.settings.scripts.filter(function(thisScript) {
+				return thisScript.name == scriptName;
+			})[0].commands;
+			
+			for (var i = 0; i < scriptCommands.length; i++) {
+				this.setCommandText(scriptCommands[i]);
+				this.runCommandScript();
+			}
+		}
+	},
+	existScript : function(scriptName) {
+		var scriptFoundCount = this.settings.scripts.filter(function(thisScript) {
+			return thisScript.name == scriptName;
+		});
+		return scriptFoundCount;
+	},
+	beginOutputWait : function(label) {
+		this.showOutput('WAITING-FOR-' + label);
+		this.settings.waitLabel = label;
+	},
+	endOutputWait : function(outputText) {
+		if (this.settings.waitLabel.length > 0) {
+			this.replaceConosleText('WAITING-FOR-' + this.settings.waitLabel,outputText);
+			this.settings.waitLabel = '';
+		}
+	},
 	addCommand : function(cmdName,cmdFunction,helpData) {
 		if (this.existCommand(cmdName).length == 0) {
 			this.settings.cmds.push({
@@ -113,14 +159,14 @@ DomTerm.prototype = {
 			return command.name == cmdName;
 		});
 	},
-	addWaitTask : function(waitFunction) {
-		this.settings.waitTask = {
-			run : waitFunction,
+	addInputTask : function(inputFunction) {
+		this.settings.inputTask = {
+			run : inputFunction,
 			active : true
 		};
 	},
-	resetWaitTask : function() {
-		this.settings.waitTask = {
+	resetInputTask : function() {
+		this.settings.inputTask = {
 			active : false
 		};
 	},
@@ -146,32 +192,39 @@ DomTerm.prototype = {
 		}
 		//Pressed enter
 		else if (event.keyCode == 13) {
-			var inputText = document.getElementById(this.settings.inputId).value;
-			this.settings.history.push(inputText);
-			this.settings.currentHistoryItem = this.settings.history.length -1;
-			if (inputText.length > 0) {
-				if (this.settings.waitTask.active) {
-					if (this.settings.consoleEcho) this.showOutput('> ' + inputText);
-						this.settings.waitTask.run(inputText);
+			this.runCommandScript();
+		}
+	},
+	runCommandScript : function() {
+		var inputText = document.getElementById(this.settings.inputId).value;
+		this.settings.history.push(inputText);
+		this.settings.currentHistoryItem = this.settings.history.length -1;
+		if (inputText.length > 0) {
+			if (this.settings.inputTask.active) {
+				if (this.settings.consoleEcho) this.showOutput('> ' + inputText);
+					this.settings.waitTask.run(inputText);
+			}
+			else {
+				var rootCmd = inputText.replace(/^([^ \t]+).*$/,"$1");
+				if (this.existCommand(rootCmd).length > 0) {
+					if (this.settings.consoleEcho)
+						this.showOutput('> ' + inputText);
+					this.settings.cmds.filter(function(command) {
+						return command.name == rootCmd;
+					})[0].run(inputText);
+				}
+				else if (this.existScript(inputText).length > 0) {
+					this.runScript(inputText);
 				}
 				else {
-					var rootCmd = inputText.replace(/^([^ \t]+).*$/,"$1");
-					if (this.existCommand(rootCmd).length > 0) {
-						if (this.settings.consoleEcho) this.showOutput('> ' + inputText);
-							this.settings.cmds.filter(function(command) {
-							return command.name == rootCmd;
-						})[0].run(inputText);
-					}
-					else {
-						this.showOutput('Command not found (' + rootCmd + ')');
-					}
+					this.showOutput('Command not found (' + rootCmd + ')');
 				}
-				if (this.settings.skipClearCommand) {
-					this.settings.skipClearCommand = false;
-				}
-				else {
-					document.getElementById(this.settings.inputId).value = '';
-				}
+			}
+			if (this.settings.skipClearCommand) {
+				this.settings.skipClearCommand = false;
+			}
+			else {
+				document.getElementById(this.settings.inputId).value = '';
 			}
 		}
 	}
@@ -180,7 +233,6 @@ DomTerm.prototype = {
 DomTerm.prototype.constructor = DomTerm;
 
 var snCli = null;
-
 
 function viewProfile() {
 	if (document.getElementById('profilelist').value != 'NONE') {
@@ -252,6 +304,11 @@ function LoadTerm(divid,terminalProfile) {
 		usage : 'echo &lt;on|off&gt;'
 	});
 	
+	snCli.addCommand('print',function(input) {
+		input = input.replace(/^print[ \t]*/,'');
+		snCli.showOutput(input);
+	});
+	
 	snCli.addCommand('help',function(input) {
 		input = input.replace(/^help[ \t]*/,'');
 		
@@ -260,8 +317,17 @@ function LoadTerm(divid,terminalProfile) {
 				return thisCmd.name == input;
 			});
 			
+			var scriptData = snCli.settings.scripts.filter(function(thisScr) {
+				return thisScr.name == input;
+			});
+			
 			if (commandData.length == 1) {
 				snCli.showOutput(commandData[0].help.description + '\nusage: ' + commandData[0].help.usage + '\n');
+			}
+			else if (scriptData.length == 1) {
+				snCli.showOutput(scriptData[0].description + '\n  Commands executed in script:\n' + scriptData[0].commands.map(function(thisCmd) {
+					return '    > ' + thisCmd;
+				}).join('\n'));
 			}
 			else {
 				snCli.showOutput('Command not found (' + input + ')');
@@ -269,6 +335,8 @@ function LoadTerm(divid,terminalProfile) {
 		}
 		else {
 			snCli.showOutput('Available commands:\n' + snCli.settings.cmds.map(function(itm) {
+				return "   " + itm.name;
+			}).sort().join('\n') + '\nAvailable Scripts:\n' + snCli.settings.scripts.map(function(itm) {
 				return "   " + itm.name;
 			}).sort().join('\n') + '\nCommand-specific information:\n   help &lt;command&gt;');
 		}
@@ -366,11 +434,14 @@ function LoadTerm(divid,terminalProfile) {
 				});
 			});
 			cliData.tasks.forEach(function(thisTask) {
-				myTerm.addScheduledTask(function() {
+				snCli.addScheduledTask(function() {
 					eval(thisTask.script);
 				},thisTask.interval,{
 					description : thisTask.description
 				});
+			});
+			cliData.scripts.forEach(function(thisScript) {
+				snCli.addScript(thisScript.name,thisScript.commands,thisScript.description);
 			});
 		}
 	});
@@ -402,13 +473,13 @@ function ClickStart() {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-23 15:34:50</sys_created_on>
         <sys_id>4d2cbf60db81330082269fd2ca961959</sys_id>
-        <sys_mod_count>105</sys_mod_count>
+        <sys_mod_count>140</sys_mod_count>
         <sys_name>run_terminal</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy/>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_ui_page_4d2cbf60db81330082269fd2ca961959</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-26 15:26:40</sys_updated_on>
+        <sys_updated_on>2019-04-29 18:27:02</sys_updated_on>
     </sys_ui_page>
 </record_update>

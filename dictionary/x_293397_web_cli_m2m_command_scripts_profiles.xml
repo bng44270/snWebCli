@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Web Cli M2m Command Scripts Profiles" max_length="40" name="x_293397_web_cli_m2m_command_scripts_profiles" type="collection">
+        <element label="Command Scripts" max_length="32" name="command_scripts" reference="x_293397_web_cli_command_scripts" type="reference"/>
+        <element label="Profiles" max_length="32" name="profiles" reference="x_293397_web_cli_profiles" type="reference"/>
+        <index name="index">
+            <element name="command_scripts"/>
+        </index>
+        <index name="index2">
+            <element name="profiles"/>
+        </index>
+    </element>
+</database>

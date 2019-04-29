@@ -28,15 +28,12 @@ WebCLIServer.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 		var fields = this.getParameter('sysparm_cli_select_fields');
 		var filter = this.getParameter('sysparm_cli_select_filter');
 		var recordCount = this.getParameter('sysparm_cli_select_records');
-		var orderBy = this.getParameter('sysparm_cli_select_orderby');
 		
 		var returnValue = [];
 		
 		var gr = new GlideRecord(table);
 		if (filter.length > 0)
 			gr.addEncodedQuery(filter);
-		if (orderBy.length > 0)
-			gr.orderByDesc(orderBy);
 		if (recordCount > 0)
 			gr.setLimit(parseInt(recordCount));
 		gr.query();
@@ -48,16 +45,23 @@ WebCLIServer.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 		return JSON.stringify(returnValue);
 	},
 	getTableSchema  : function() {
+		var returnValue = [];
 		var tableName = this.getParameter('sysparm_cli_table_name');
 		
 		var tableDepends = new GlideTableHierarchy(tableName);
 		
-		var returnValue = tableDepends.getTables().map(function(x) {
-			return {
-				name : x,
-				fields : this.getTableFields(x)
-			};
-		});
+		var tableAr = tableDepends.getTables();
+		
+		for (var i = 0; i < tableAr.length; i++) {
+			returnValue.push({
+				name:tableAr[i],
+				fields : this.getTableFields(tableAr[i]).sort(function(a,b) {
+					return a.element - b.element;
+				})
+			});
+		}
+		
+		gs.info(JSON.stringify(returnValue));
 		return JSON.stringify(returnValue);
 	},
 	getTableFields : function(tableName) {
@@ -73,19 +77,74 @@ WebCLIServer.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 		}
 		return fieldList;
 	},
+	
+	getFieldAcl : function() {
+		var returnValue = [];
+
+		var tableName = this.getParameter('sysparm_cli_table_name');
+		var fieldName = this.getParameter('sysparm_cli_field_name');
+		
+		var hasField = false;
+		
+		var aclName = tableName + '.' + fieldName;
+		
+		var gr = new GlideRecord("sys_security_acl");
+		
+		if (fieldName.length > 0) {
+			gr.addQuery("name", aclName);
+			hasField = true;
+		}
+		else {
+			gr.addEncodedQuery('nameSTARTSWITH' + tableName);
+		}
+		
+		gr.query();
+		while (gr.next()) {
+			returnValue.push({
+				acl : gr.getValue('name'),
+				type : gr.getValue('type'),
+				operation : gr.getValue('operation'),
+				roles : this.getRolesForAcl(gr.getUniqueValue())
+			});
+		}
+		
+		return JSON.stringify(returnValue);
+	},
+	getRolesForAcl : function(uniqueId) {
+		var returnValue = [];
+		var gr = new GlideRecord("sys_security_acl_role");
+		gr.addQuery("sys_security_acl", uniqueId);
+		gr.query();
+		while (gr.next()) {
+			returnValue.push(this.getRoleNameBySydId(gr.getValue('sys_user_role')));
+		}
+		gs.info(JSON.stringify(returnValue));
+		return returnValue;
+	},
+	getRoleNameBySydId : function (uniqueId) {
+		returnValue = "";
+		var gr = new GlideRecord("sys_user_role");
+		gr.addQuery("sys_id",uniqueId);
+		gr.query();
+		if (gr.next()) {
+			returnValue = gr.getValue('name');
+		}
+		gs.info(returnValue);
+		return returnValue;
+	},
 	type: 'WebCLIServer'
 });]]></script>
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-24 20:43:02</sys_created_on>
         <sys_id>344a824ddb05330082269fd2ca961918</sys_id>
-        <sys_mod_count>63</sys_mod_count>
+        <sys_mod_count>84</sys_mod_count>
         <sys_name>WebCLIServer</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_script_include_344a824ddb05330082269fd2ca961918</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-26 18:22:51</sys_updated_on>
+        <sys_updated_on>2019-04-29 20:01:56</sys_updated_on>
     </sys_script_include>
 </record_update>
