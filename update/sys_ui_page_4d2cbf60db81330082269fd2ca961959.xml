@@ -21,443 +21,450 @@
 		history : [],
 		currentHistoryItem : -1,
 		skipClearCommand : false,
+		scripts : [],
 		waitLabel : '',
-		scripts : []
-	};
-}
-
-DomTerm.prototype = {
-	boot : function() {
-		this.drawTerm();
-		document.getElementById(this.settings.inputId).style.width = (document.body.scrollWidth - 30).toString() + 'px';
-		document.getElementById(this.settings.displayId).style.width = (document.body.scrollWidth - 30).toString() + 'px';
-	},
-	drawTerm : function() {
-		var htmlContent = '<input autocomplete="off" type="text" id="' + this.settings.inputId + '" style="width:520px;border:none;" /><br/>';
-		htmlContent += '<pre id="' + this.settings.displayId + '" style="width:520px;overflow-y:scroll;height:400px;outline:none;resize: both;overflow: auto;"></pre><br/>';
-		htmlContent += '<input type="button" id="' + this.settings.selectionId + '" value="Turn Selection Mode On" />';
-		document.getElementById(this.settings.container).innerHTML = htmlContent;
-		document.getElementById(this.settings.inputId).addEventListener('keyup',this.handleInput.bind(this),false);
-		document.getElementById(this.settings.displayId).addEventListener('mouseup',this.resizeDisplay.bind(this),false);
-		document.getElementById(this.settings.selectionId).addEventListener('click',this.toggleSelection.bind(this),false);
-		document.getElementById(this.settings.inputId).focus();
-	},
-	toggleSelection : function(event) {
-		if (this.settings.selection) {
-			this.settings.selection = false;
-			document.getElementById(this.settings.selectionId).value = 'Turn Selection Mode On';
-		}
-		else {
-			this.settings.selection = true;
-			document.getElementById(this.settings.selectionId).value = 'Turn Selection Mode Off';
-		}
-		document.getElementById(this.settings.inputId).focus();
-	},
-	resizeDisplay : function(event) {
-		document.getElementById(this.settings.inputId).style.width = document.getElementById(this.settings.displayId).style.width;
-		if (!this.settings.selection) {
+		filteredOutput : { active : false }
+		};
+	}
+	
+	DomTerm.prototype = {
+		boot : function() {
+			this.drawTerm();
+			document.getElementById(this.settings.inputId).style.width = (document.body.scrollWidth - 30).toString() + 'px';
+			document.getElementById(this.settings.displayId).style.width = (document.body.scrollWidth - 30).toString() + 'px';
+		},
+		drawTerm : function() {
+			var htmlContent = '<input autocomplete="off" type="text" id="' + this.settings.inputId + '" style="width:520px;border:none;" /><br/>';
+			htmlContent += '<pre id="' + this.settings.displayId + '" style="width:520px;overflow-y:scroll;height:400px;outline:none;resize: both;overflow: auto;"></pre><br/>';
+			htmlContent += '<input type="button" id="' + this.settings.selectionId + '" value="Turn Selection Mode On" />';
+			document.getElementById(this.settings.container).innerHTML = htmlContent;
+			document.getElementById(this.settings.inputId).addEventListener('keyup',this.handleInput.bind(this),false);
+			document.getElementById(this.settings.displayId).addEventListener('mouseup',this.resizeDisplay.bind(this),false);
+			document.getElementById(this.settings.selectionId).addEventListener('click',this.toggleSelection.bind(this),false);
 			document.getElementById(this.settings.inputId).focus();
-		}
-	},
-	clearConsole : function() {
-		document.getElementById(this.settings.displayId).innerHTML = '';
-	},
-	showOutput : function(outputText) {
-		document.getElementById(this.settings.displayId).innerHTML = outputText + '\n' + document.getElementById(this.settings.displayId).innerHTML;
-	},
-	replaceConosleText : function(origText,replaceWith) {
-		var consoleText = document.getElementById(this.settings.displayId).innerHTML;
-		document.getElementById(this.settings.displayId).innerHTML = consoleText.replace(origText,replaceWith);
-	},
-	addScheduledTask : function(taskFunction,taskSeconds,helpData) {
-		this.settings.scheduledTasks.push({
-			run:taskFunction,
-			interval:taskSeconds*1000,
-			help:helpData
-		});
-	},
-	getScheduledTaskCount : function () {
-		return this.settings.scheduledTasks.length;
-	},
-	setCommandText : function(cmdText) {
-		document.getElementById(this.settings.inputId).value = cmdText;
-	},
-	getCommandText : function() {
-		return document.getElementById(this.settings.inputId).value;
-	},
-	startScheduledTasks : function() {
-		this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
-			var taskId = window.setInterval(function() {
-				thisTask.run.call(this);
-			},thisTask.interval);
-			return {
-				run:thisTask.run,
-				interval:thisTask.interval,
-				help:thisTask.help,
-				task:taskId
-			};
-		});
-		this.settings.runningTasks = true;
-	},
-	stopScheduledTasks : function() {
-		this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
-			window.clearInterval(thisTask.task);
-			return {
-				run:thisTask.run,
-				interval:thisTask.interval,
-				help:thisTask.help
-			};
-		});
-		this.settings.runningTasks = false;
-	},
-	addScript : function(scriptName,cmdAr, scriptDescr) {
-		this.settings.scripts.push({
-			name : scriptName,
-			description : scriptDescr,
-			commands : cmdAr
-		});
-	},
-	runScript : function(scriptName) {
-		if (this.existScript(scriptName)) {
-			var scriptCommands = this.settings.scripts.filter(function(thisScript) {
-				return thisScript.name == scriptName;
-			})[0].commands;
-			
-			for (var i = 0; i < scriptCommands.length; i++) {
-				this.setCommandText(scriptCommands[i]);
-				this.runCommandScript();
+		},
+		toggleSelection : function(event) {
+			if (this.settings.selection) {
+				this.settings.selection = false;
+				document.getElementById(this.settings.selectionId).value = 'Turn Selection Mode On';
 			}
-		}
-	},
-	existScript : function(scriptName) {
-		var scriptFoundCount = this.settings.scripts.filter(function(thisScript) {
-			return thisScript.name == scriptName;
-		});
-		return scriptFoundCount;
-	},
-	beginOutputWait : function(label) {
-		this.showOutput('WAITING-FOR-' + label);
-		this.settings.waitLabel = label;
-	},
-	endOutputWait : function(outputText) {
-		if (this.settings.waitLabel.length > 0) {
-			this.replaceConosleText('WAITING-FOR-' + this.settings.waitLabel,outputText);
-			this.settings.waitLabel = '';
-		}
-	},
-	addCommand : function(cmdName,cmdFunction,helpData) {
-		if (this.existCommand(cmdName).length == 0) {
-			this.settings.cmds.push({
-				name:cmdName,
-				run:cmdFunction,
+			else {
+				this.settings.selection = true;
+				document.getElementById(this.settings.selectionId).value = 'Turn Selection Mode Off';
+			}
+			document.getElementById(this.settings.inputId).focus();
+		},
+		resizeDisplay : function(event) {
+			document.getElementById(this.settings.inputId).style.width = document.getElementById(this.settings.displayId).style.width;
+			if (!this.settings.selection) {
+				document.getElementById(this.settings.inputId).focus();
+			}
+		},
+		clearConsole : function() {
+			document.getElementById(this.settings.displayId).innerHTML = '';
+		},
+		showOutput : function(outputText) {
+			document.getElementById(this.settings.displayId).innerHTML = outputText + '\n' + document.getElementById(this.settings.displayId).innerHTML;
+		},
+		setFilteredOutput : function(filterText) {
+			this.settings.filteredOutput = {
+				active : true,
+				text : filterText
+			};
+		},
+		replaceConosleText : function(origText,replaceWith) {
+			var consoleText = document.getElementById(this.settings.displayId).innerHTML;
+			document.getElementById(this.settings.displayId).innerHTML = consoleText.replace(origText,replaceWith);
+		},
+		addScheduledTask : function(taskFunction,taskSeconds,helpData) {
+			this.settings.scheduledTasks.push({
+				run:taskFunction,
+				interval:taskSeconds*1000,
 				help:helpData
 			});
-		}
-	},
-	existCommand : function(cmdName) {
-		return this.settings.cmds.filter(function(command) {
-			return command.name == cmdName;
-		});
-	},
-	addInputTask : function(inputFunction) {
-		this.settings.inputTask = {
-			run : inputFunction,
-			active : true
-		};
-	},
-	resetInputTask : function() {
-		this.settings.inputTask = {
-			active : false
-		};
-	},
-	handleInput : function(event) {
-		//Escape
-		if (event.keyCode == 27) {
-			this.setCommandText('');
-		}
-		//Pressed up
-		else if (event.keyCode == 38) {
-			this.setCommandText(this.settings.history[this.settings.currentHistoryItem]);
-			if (this.settings.currentHistoryItem > 0) {
-				this.settings.currentHistoryItem -= 1;
-			}
-			
-		}
-		//Pressed down
-		else if (event.keyCode == 40) {
-			if (this.settings.currentHistoryItem < (this.settings.history.length - 1)) {
-				this.settings.currentHistoryItem += 1;
-			}
-			this.setCommandText(this.settings.history[this.settings.currentHistoryItem]);
-		}
-		//Pressed enter
-		else if (event.keyCode == 13) {
-			this.runCommandScript();
-		}
-	},
-	runCommandScript : function() {
-		var inputText = document.getElementById(this.settings.inputId).value;
-		this.settings.history.push(inputText);
-		this.settings.currentHistoryItem = this.settings.history.length -1;
-		if (inputText.length > 0) {
-			if (this.settings.inputTask.active) {
-				if (this.settings.consoleEcho) this.showOutput('> ' + inputText);
-					this.settings.waitTask.run(inputText);
-			}
-			else {
-				var rootCmd = inputText.replace(/^([^ \t]+).*$/,"$1");
-				if (this.existCommand(rootCmd).length > 0) {
-					if (this.settings.consoleEcho)
-						this.showOutput('> ' + inputText);
-					this.settings.cmds.filter(function(command) {
-						return command.name == rootCmd;
-					})[0].run(inputText);
+		},
+		getScheduledTaskCount : function () {
+			return this.settings.scheduledTasks.length;
+		},
+		setCommandText : function(cmdText) {
+			document.getElementById(this.settings.inputId).value = cmdText;
+		},
+		getCommandText : function() {
+			return document.getElementById(this.settings.inputId).value;
+		},
+		startScheduledTasks : function() {
+			this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
+				var taskId = window.setInterval(function() {
+					thisTask.run.call(this);
+				},thisTask.interval);
+				return {
+					run:thisTask.run,
+					interval:thisTask.interval,
+					help:thisTask.help,
+					task:taskId
+				};
+			});
+			this.settings.runningTasks = true;
+		},
+		stopScheduledTasks : function() {
+			this.settings.scheduledTasks = this.settings.scheduledTasks.map(function (thisTask) {
+				window.clearInterval(thisTask.task);
+				return {
+					run:thisTask.run,
+					interval:thisTask.interval,
+					help:thisTask.help
+				};
+			});
+			this.settings.runningTasks = false;
+		},
+		addScript : function(scriptName,cmdAr, scriptDescr) {
+			this.settings.scripts.push({
+				name : scriptName,
+				description : scriptDescr,
+				commands : cmdAr
+			});
+		},
+		runScript : function(scriptName) {
+			if (this.existScript(scriptName)) {
+				var scriptCommands = this.settings.scripts.filter(function(thisScript) {
+					return thisScript.name == scriptName;
+				})[0].commands;
+				
+				for (var i = 0; i < scriptCommands.length; i++) {
+					this.setCommandText(scriptCommands[i]);
+					this.runCommandScript();
 				}
-				else if (this.existScript(inputText).length > 0) {
-					this.runScript(inputText);
+			}
+		},
+		existScript : function(scriptName) {
+			var scriptFoundCount = this.settings.scripts.filter(function(thisScript) {
+				return thisScript.name == scriptName;
+			});
+			return scriptFoundCount;
+		},
+		beginOutputWait : function(label) {
+			this.showOutput('WAITING-FOR-' + label);
+			this.settings.waitLabel = label;
+		},
+		endOutputWait : function(outputText) {
+			this.replaceConosleText('WAITING-FOR-' + this.settings.waitLabel,outputText);
+			this.settings.waitLabel = '';
+		},
+		addCommand : function(cmdName,cmdFunction,helpData) {
+			if (this.existCommand(cmdName).length == 0) {
+				this.settings.cmds.push({
+					name:cmdName,
+					run:cmdFunction,
+					help:helpData
+				});
+			}
+		},
+		existCommand : function(cmdName) {
+			return this.settings.cmds.filter(function(command) {
+				return command.name == cmdName;
+			});
+		},
+		addInputTask : function(inputFunction) {
+			this.settings.inputTask = {
+				run : inputFunction,
+				active : true
+			};
+		},
+		resetInputTask : function() {
+			this.settings.inputTask = {
+				active : false
+			};
+		},
+		handleInput : function(event) {
+			//Escape
+			if (event.keyCode == 27) {
+				this.setCommandText('');
+			}
+			//Pressed up
+			else if (event.keyCode == 38) {
+				this.setCommandText(this.settings.history[this.settings.currentHistoryItem]);
+				if (this.settings.currentHistoryItem > 0) {
+					this.settings.currentHistoryItem -= 1;
+				}
+				
+			}
+			//Pressed down
+			else if (event.keyCode == 40) {
+				if (this.settings.currentHistoryItem < (this.settings.history.length - 1)) {
+					this.settings.currentHistoryItem += 1;
+				}
+				this.setCommandText(this.settings.history[this.settings.currentHistoryItem]);
+			}
+			//Pressed enter
+			else if (event.keyCode == 13) {
+				this.runCommandScript();
+			}
+		},
+		runCommandScript : function() {
+			var inputText = document.getElementById(this.settings.inputId).value;
+			this.settings.history.push(inputText);
+			this.settings.currentHistoryItem = this.settings.history.length -1;
+			if (inputText.length > 0) {
+				if (this.settings.inputTask.active) {
+					if (this.settings.consoleEcho) {
+						this.showOutput('> ' + inputText);
+					}
+					this.settings.inputTask.run(inputText);
 				}
 				else {
-					this.showOutput('Command not found (' + rootCmd + ')');
+					var rootCmd = inputText.replace(/^([^ \t]+).*$/,"$1");
+					if (this.existCommand(rootCmd).length > 0) {
+						if (this.settings.consoleEcho)
+							this.showOutput('> ' + inputText);
+						this.settings.cmds.filter(function(command) {
+							return command.name == rootCmd;
+						})[0].run(inputText);
+					}
+					else if (this.existScript(inputText).length > 0) {
+						this.runScript(inputText);
+					}
+					else {
+						this.showOutput('Command not found (' + rootCmd + ')');
+					}
+				}
+				if (this.settings.skipClearCommand) {
+					this.settings.skipClearCommand = false;
+				}
+				else {
+					document.getElementById(this.settings.inputId).value = '';
 				}
 			}
-			if (this.settings.skipClearCommand) {
-				this.settings.skipClearCommand = false;
-			}
-			else {
-				document.getElementById(this.settings.inputId).value = '';
-			}
+		}
+	};
+	
+	DomTerm.prototype.constructor = DomTerm;
+	
+	var snCli = null;
+	
+	function viewProfile() {
+		if (document.getElementById('profilelist').value != 'NONE') {
+			document.getElementById('profilelist').style.display = 'none';
+			LoadTerm('myterminal',document.getElementById('profilelist').value);
 		}
 	}
-};
-
-DomTerm.prototype.constructor = DomTerm;
-
-var snCli = null;
-
-function viewProfile() {
-	if (document.getElementById('profilelist').value != 'NONE') {
-		document.getElementById('profilelist').style.display = 'none';
-		LoadTerm('myterminal',document.getElementById('profilelist').value);
-	}
-}
-
-function loadList() {
-	document.getElementById('listbutton').style.display = 'none';
-	document.getElementById('profilelist').style.display = 'block';
-	document.getElementById('profilelist').innerHTML = '';
-	var noneOpt = document.createElement('option');
-	noneOpt.value = 'NONE';
-	noneOpt.innerHTML = 'Choose a Profile';
-	document.getElementById('profilelist').appendChild(noneOpt);
 	
-	var configureCliApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
-	configureCliApi.addParam('sysparm_name','getProfileList');
-	
-	configureCliApi.getXML(function(response) {
-		var profileData = JSON.parse(response.responseXML.documentElement.getAttribute('answer'));
-		profileData.forEach(function(thisProfile) {
-			var thisOpt = document.createElement('option');
-			thisOpt.value = thisProfile.sysid;
-			thisOpt.innerHTML = thisProfile.label;
-			document.getElementById('profilelist').appendChild(thisOpt);
-			thisOpt = null;
+	function loadList() {
+		document.getElementById('listbutton').style.display = 'none';
+		document.getElementById('profilelist').style.display = 'block';
+		document.getElementById('profilelist').innerHTML = '';
+		var noneOpt = document.createElement('option');
+		noneOpt.value = 'NONE';
+		noneOpt.innerHTML = 'Choose a Profile';
+		document.getElementById('profilelist').appendChild(noneOpt);
+		
+		var configureCliApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
+		configureCliApi.addParam('sysparm_name','getProfileList');
+		
+		configureCliApi.getXML(function(response) {
+			var profileData = JSON.parse(response.responseXML.documentElement.getAttribute('answer'));
+			profileData.forEach(function(thisProfile) {
+				var thisOpt = document.createElement('option');
+				thisOpt.value = thisProfile.sysid;
+				thisOpt.innerHTML = thisProfile.label;
+				document.getElementById('profilelist').appendChild(thisOpt);
+				thisOpt = null;
+			});
 		});
-	});
-}
-
-
-function LoadTerm(divid,terminalProfile) {
-	snCli = new DomTerm(divid);
+	}
 	
-	snCli.addCommand('clear',function(command) {
-		snCli.clearConsole();
-	},{
-		description : 'Clears contents of console',
-		usage : 'clear'
-	});
 	
-	snCli.addCommand('info',function(command) {
-		snCli.showOutput('Configuration Loaded:\n  ' + snCli.settings.cmds.length.toString() + ' commands\n  ' + snCli.settings.scheduledTasks.length.toString() + ' scheduled tasks');
-	},{
-		description : 'Display terminal information',
-		usage : 'info'
-	});
-	
-	snCli.addCommand('echo',function(command) {
-		command = command.replace(/^echo[ \t]*/,'');
-		if (command == 'on') {
-			snCli.settings.consoleEcho = true;
-			snCli.showOutput('echo is on');
-		}
-		else if (command == 'off') {
-			snCli.settings.consoleEcho = false;
-			snCli.showOutput('echo is off');
-		}
-		else if (command.length == 0) {
-			snCli.showOutput('echo is ' + ((snCli.settings.consoleEcho) ? 'on' : 'off'));
-		}
-		else {
-			snCli.showOutput('Invalid echo option (' + command + ')');
-		}
-	},{
-		description : 'Change command echo functionality',
-		usage : 'echo &lt;on|off&gt;'
-	});
-	
-	snCli.addCommand('print',function(input) {
-		input = input.replace(/^print[ \t]*/,'');
-		snCli.showOutput(input);
-	});
-	
-	snCli.addCommand('help',function(input) {
-		input = input.replace(/^help[ \t]*/,'');
+	function LoadTerm(divid,terminalProfile) {
+		snCli = new DomTerm(divid);
 		
-		if (input.length > 0) {
-			var commandData = snCli.settings.cmds.filter(function(thisCmd) {
-				return thisCmd.name == input;
-			});
-			
-			var scriptData = snCli.settings.scripts.filter(function(thisScr) {
-				return thisScr.name == input;
-			});
-			
-			if (commandData.length == 1) {
-				snCli.showOutput(commandData[0].help.description + '\nusage: ' + commandData[0].help.usage + '\n');
+		snCli.addCommand('clear',function(command) {
+			snCli.clearConsole();
+		},{
+			description : 'Clears contents of console',
+			usage : 'clear'
+		});
+		
+		snCli.addCommand('info',function(command) {
+			snCli.showOutput('Configuration Loaded:\n  ' + snCli.settings.cmds.length.toString() + ' commands\n  ' + snCli.settings.scheduledTasks.length.toString() + ' scheduled tasks');
+		},{
+			description : 'Display terminal information',
+			usage : 'info'
+		});
+		
+		snCli.addCommand('echo',function(command) {
+			command = command.replace(/^echo[ \t]*/,'');
+			if (command == 'on') {
+				snCli.settings.consoleEcho = true;
+				snCli.showOutput('echo is on');
 			}
-			else if (scriptData.length == 1) {
-				snCli.showOutput(scriptData[0].description + '\n  Commands executed in script:\n' + scriptData[0].commands.map(function(thisCmd) {
-					return '    > ' + thisCmd;
-				}).join('\n'));
+			else if (command == 'off') {
+				snCli.settings.consoleEcho = false;
+				snCli.showOutput('echo is off');
+			}
+			else if (command.length == 0) {
+				snCli.showOutput('echo is ' + ((snCli.settings.consoleEcho) ? 'on' : 'off'));
 			}
 			else {
-				snCli.showOutput('Command not found (' + input + ')');
+				snCli.showOutput('Invalid echo option (' + command + ')');
 			}
-		}
-		else {
-			snCli.showOutput('Available commands:\n' + snCli.settings.cmds.map(function(itm) {
-				return "   " + itm.name;
-			}).sort().join('\n') + '\nAvailable Scripts:\n' + snCli.settings.scripts.map(function(itm) {
-				return "   " + itm.name;
-			}).sort().join('\n') + '\nCommand-specific information:\n   help &lt;command&gt;');
-		}
-	},{
-		description : 'Show help information',
-		usage : 'help [&lt;command&gt;]'
-	});
-	
-	snCli.addCommand('history',function() {
-		for (var i = 0; i < snCli.settings.history.length; i++) {
-			snCli.showOutput((i+1).toString() + ': ' + snCli.settings.history[i]);
-		}
-	},{
-		description : 'Show command history',
-		usage : 'history'
-	});
-	
-	snCli.addCommand('rerun',function(command) {
-		command = command.replace(/^rerun[ \t]*/,"");
+		},{
+			description : 'Change command echo functionality',
+			usage : 'echo &lt;on|off&gt;'
+		});
 		
-		var cmdIdx = eval(command) - 1;
-		if (cmdIdx <= snCli.settings.history.length) {
-			snCli.setCommandText(snCli.settings.history[cmdIdx]);
-			this.settings.skipClearCommand = true;
-		}
-	},{
-		description : "Rerun command listed in history",
-		usage : "rerun &lt;history-id&gt;"
-	});
-	
-	snCli.addCommand('task-info',function() {
-		if (snCli.getScheduledTaskCount() > 0) {
-			var taskAr = [];
-			for (var i = 0; i < snCli.settings.scheduledTasks.length; i++) {
-				taskAr.push(i.toString() + ': ' + snCli.settings.scheduledTasks[i].help.description);
+		snCli.addCommand('print',function(input) {
+			input = input.replace(/^print[ \t]*/,'');
+			snCli.showOutput(input);
+		});
+		
+		snCli.addCommand('help',function(input) {
+			input = input.replace(/^help[ \t]*/,'');
+			
+			if (input.length > 0) {
+				var commandData = snCli.settings.cmds.filter(function(thisCmd) {
+					return thisCmd.name == input;
+				});
+				
+				var scriptData = snCli.settings.scripts.filter(function(thisScr) {
+					return thisScr.name == input;
+				});
+				
+				if (commandData.length == 1) {
+					snCli.showOutput(commandData[0].help.description + '\nusage: ' + commandData[0].help.usage + '\n');
+				}
+				else if (scriptData.length == 1) {
+					snCli.showOutput(scriptData[0].description + '\n  Commands executed in script:\n' + scriptData[0].commands.map(function(thisCmd) {
+						return '    > ' + thisCmd;
+					}).join('\n'));
+				}
+				else {
+					snCli.showOutput('Command not found (' + input + ')');
+				}
 			}
-			snCli.showOutput(taskAr.join('\n'));
-		}
-		else {
-			snCli.showOutput('No tasks available');
-		}
-	},{
-		description : 'Display scheduled task information',
-		usage : 'task-info'
-	});
+			else {
+				snCli.showOutput('Available commands:\n' + snCli.settings.cmds.map(function(itm) {
+					return "   " + itm.name;
+				}).sort().join('\n') + '\nAvailable Scripts:\n' + snCli.settings.scripts.map(function(itm) {
+					return "   " + itm.name;
+				}).sort().join('\n') + '\nCommand-specific information:\n   help &lt;command&gt;');
+			}
+		},{
+			description : 'Show help information',
+			usage : 'help [&lt;command&gt;]'
+		});
 	
-	snCli.addCommand('start-tasks',function() {
-		if (snCli.getScheduledTaskCount() > 0) {
+		snCli.addCommand('history',function() {
+			for (var i = 0; i < snCli.settings.history.length; i++) {
+				snCli.showOutput((i+1).toString() + ': ' + snCli.settings.history[i]);
+			}
+		},{
+			description : 'Show command history',
+			usage : 'history'
+		});
+		
+		snCli.addCommand('rerun',function(command) {
+			command = command.replace(/^rerun[ \t]*/,"");
+			
+			var cmdIdx = eval(command) - 1;
+			if (cmdIdx <= snCli.settings.history.length) {
+				snCli.setCommandText(snCli.settings.history[cmdIdx]);
+				this.settings.skipClearCommand = true;
+			}
+		},{
+			description : "Rerun command listed in history",
+			usage : "rerun &lt;history-id&gt;"
+		});
+		
+		snCli.addCommand('task-info',function() {
+			if (snCli.getScheduledTaskCount() > 0) {
+				var taskAr = [];
+				for (var i = 0; i < snCli.settings.scheduledTasks.length; i++) {
+					taskAr.push(i.toString() + ': ' + snCli.settings.scheduledTasks[i].help.description);
+				}
+				snCli.showOutput(taskAr.join('\n'));
+			}
+			else {
+				snCli.showOutput('No tasks available');
+			}
+		},{
+			description : 'Display scheduled task information',
+			usage : 'task-info'
+		});
+		
+		snCli.addCommand('start-tasks',function() {
+			if (snCli.getScheduledTaskCount() > 0) {
+				if (snCli.settings.runningTasks) {
+					snCli.showOutput('Tasks are already running');
+				}
+				else {
+					snCli.showOutput('Starting ' + snCli.getScheduledTaskCount().toString() + ' tasks');
+					snCli.startScheduledTasks();
+					snCli.settings.runningTasks = true;
+				}
+			}
+			else {
+				snCli.showOutput('No tasks available to run');
+			}
+		},{
+			description : 'Starts all scheduled tasks',
+			usage : 'start-tasks'
+		});
+		
+		snCli.addCommand('stop-tasks',function() {
 			if (snCli.settings.runningTasks) {
-				snCli.showOutput('Tasks are already running');
+				snCli.showOutput('Stopping ' + snCli.getScheduledTaskCount().toString() + ' tasks');
+				snCli.stopScheduledTasks();
+				snCli.settings.runningTasks = false;
 			}
 			else {
-				snCli.showOutput('Starting ' + snCli.getScheduledTaskCount().toString() + ' tasks');
-				snCli.startScheduledTasks();
-				snCli.settings.runningTasks = true;
+				snCli.showOutput('Tasks are not running');
 			}
+		},{
+			description : 'Stops all scheduled tasks',
+			usage : 'stop-tasks'
+		});
+		
+		var cmdAr = [];
+		var taskAr = [];
+		
+		var configureCliApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
+		configureCliApi.addParam('sysparm_name','loadProfile');
+		configureCliApi.addParam('sysparm_cli_profile_sys_id',terminalProfile);
+		configureCliApi.getXML(function(response) {
+			var cliData = JSON.parse(response.responseXML.documentElement.getAttribute('answer'));
+			if (cliData.success) {
+				cliData.commands.forEach(function(thisCommand) {
+					snCli.addCommand(thisCommand.name,function(input) {
+						eval(thisCommand.script);
+					},{
+						description : thisCommand.description,
+						usage : thisCommand.usage
+					});
+				});
+				cliData.tasks.forEach(function(thisTask) {
+					snCli.addScheduledTask(function() {
+						eval(thisTask.script);
+					},thisTask.interval,{
+						description : thisTask.description
+					});
+				});
+				cliData.scripts.forEach(function(thisScript) {
+					snCli.addScript(thisScript.name,thisScript.commands,thisScript.description);
+				});
+			}
+		});
+		
+		snCli.boot();
+	}
+	
+	function ClickStart() {
+		if (!snCli && terminalProfile) {
+			document.getElementById('start_term_link').style.display = 'none';
+			LoadTerm();
 		}
 		else {
-			snCli.showOutput('No tasks available to run');
+			document.getElementById('start_term_link').value = "Error: Terminal profile required";
 		}
-	},{
-		description : 'Starts all scheduled tasks',
-		usage : 'start-tasks'
-	});
-	
-	snCli.addCommand('stop-tasks',function() {
-		if (snCli.settings.runningTasks) {
-			snCli.showOutput('Stopping ' + snCli.getScheduledTaskCount().toString() + ' tasks');
-			snCli.stopScheduledTasks();
-			snCli.settings.runningTasks = false;
-		}
-		else {
-			snCli.showOutput('Tasks are not running');
-		}
-	},{
-		description : 'Stops all scheduled tasks',
-		usage : 'stop-tasks'
-	});
-	
-	var cmdAr = [];
-	var taskAr = [];
-	
-	var configureCliApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
-	configureCliApi.addParam('sysparm_name','loadProfile');
-	configureCliApi.addParam('sysparm_cli_profile_sys_id',terminalProfile);
-	configureCliApi.getXML(function(response) {
-		var cliData = JSON.parse(response.responseXML.documentElement.getAttribute('answer'));
-		if (cliData.success) {
-			cliData.commands.forEach(function(thisCommand) {
-				snCli.addCommand(thisCommand.name,function(input) {
-					eval(thisCommand.script);
-				},{
-					description : thisCommand.description,
-					usage : thisCommand.usage
-				});
-			});
-			cliData.tasks.forEach(function(thisTask) {
-				snCli.addScheduledTask(function() {
-					eval(thisTask.script);
-				},thisTask.interval,{
-					description : thisTask.description
-				});
-			});
-			cliData.scripts.forEach(function(thisScript) {
-				snCli.addScript(thisScript.name,thisScript.commands,thisScript.description);
-			});
-		}
-	});
-	
-	snCli.boot();
-}
-
-function ClickStart() {
-	if (!snCli && terminalProfile) {
-		document.getElementById('start_term_link').style.display = 'none';
-		LoadTerm();
-	}
-	else {
-		document.getElementById('start_term_link').value = "Error: Terminal profile required";
-	}
-}]]></client_script>
+	}]]></client_script>
         <description/>
         <direct>false</direct>
         <endpoint>x_293397_web_cli_run_terminal.do</endpoint>
@@ -473,13 +480,13 @@ function ClickStart() {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-23 15:34:50</sys_created_on>
         <sys_id>4d2cbf60db81330082269fd2ca961959</sys_id>
-        <sys_mod_count>140</sys_mod_count>
+        <sys_mod_count>145</sys_mod_count>
         <sys_name>run_terminal</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy/>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_ui_page_4d2cbf60db81330082269fd2ca961959</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-29 18:27:02</sys_updated_on>
+        <sys_updated_on>2019-04-30 15:52:17</sys_updated_on>
     </sys_ui_page>
 </record_update>
