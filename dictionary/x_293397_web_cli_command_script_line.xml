@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><database>
-    <element label="Command Script Line" max_length="40" name="x_293397_web_cli_command_script_line" type="collection">
-        <element label="Command" max_length="256" name="command" type="string"/>
-        <element display="true" label="Description" max_length="40" name="description" type="string"/>
-        <element label="Order" max_length="40" name="order" type="integer"/>
-    </element>
-</database>

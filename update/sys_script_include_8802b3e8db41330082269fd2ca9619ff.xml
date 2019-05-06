@@ -39,26 +39,12 @@ ConfigureCLI.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 			while (scriptGr.next()) {
 				var scriptName = scriptGr.getValue('name');
 				var scriptDescr = scriptGr.getValue('description');
-				var scriptLineAr = [];
-				var scriptLineScriptGr = new GlideRecord("x_293397_web_cli_m2m_command_scri_command_scri");
-				scriptLineScriptGr.addQuery("command_scripts",scriptGr.getUniqueValue());
-				scriptLineScriptGr.query();
-				while (scriptLineScriptGr.next()) {
-					var scriptLineGr = new GlideRecord("x_293397_web_cli_command_script_line");
-					scriptLineGr.addQuery("sys_id", scriptLineScriptGr.getValue('command_script_line'));
-					scriptLineGr.query();
-					while (scriptLineGr.next()) {
-						scriptLineAr.push({cmd:scriptLineGr.getValue('command'),order:scriptLineGr.getValue('order')});
-					}
-				}
+				var scriptLineAr = scriptGr.getValue('script').split('\n');
+				
 				scriptList.push({
 					name : scriptName,
 					description : scriptDescr,
-					commands : scriptLineAr.sort(function(a,b) {
-						return a.order - b.order;
-					}).map(function(thisItm) {
-						return thisItm.cmd;
-					})
+					commands : scriptLineAr
 				});
 			}
 		}
@@ -96,13 +82,13 @@ ConfigureCLI.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-23 15:06:21</sys_created_on>
         <sys_id>8802b3e8db41330082269fd2ca9619ff</sys_id>
-        <sys_mod_count>36</sys_mod_count>
+        <sys_mod_count>37</sys_mod_count>
         <sys_name>ConfigureCLI</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_script_include_8802b3e8db41330082269fd2ca9619ff</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-05-02 14:45:05</sys_updated_on>
+        <sys_updated_on>2019-05-06 18:24:57</sys_updated_on>
     </sys_script_include>
 </record_update>

@@ -3,5 +3,6 @@
         <element label="Description" max_length="200" name="description" type="string"/>
         <element display="true" label="Label" max_length="40" name="label" type="string"/>
         <element label="Name" max_length="40" name="name" type="string"/>
+        <element label="Script" max_length="4000" name="script" type="string"/>
     </element>
 </database>
