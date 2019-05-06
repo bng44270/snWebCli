@@ -3,7 +3,7 @@
         <active>true</active>
         <array>false</array>
         <array_denormalized>false</array_denormalized>
-        <attributes/>
+        <attributes>glide.ui.javascript_editor=false</attributes>
         <audit>false</audit>
         <calculation><![CDATA[(function calculatedFieldValue(current) {
 
@@ -32,7 +32,7 @@
         <foreign_database/>
         <function_definition/>
         <function_field>false</function_field>
-        <internal_type display_value="String">string</internal_type>
+        <internal_type display_value="">script_plain</internal_type>
         <mandatory>false</mandatory>
         <max_length>4000</max_length>
         <name>x_293397_web_cli_command_scripts</name>
@@ -54,14 +54,14 @@
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-05-06 18:22:20</sys_created_on>
         <sys_id>a760a7f8dbdd330082269fd2ca961980</sys_id>
-        <sys_mod_count>0</sys_mod_count>
+        <sys_mod_count>2</sys_mod_count>
         <sys_name>Script</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy/>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_dictionary_x_293397_web_cli_command_scripts_script</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-05-06 18:22:20</sys_updated_on>
+        <sys_updated_on>2019-05-06 20:44:13</sys_updated_on>
         <table_reference>false</table_reference>
         <text_index>false</text_index>
         <unique>false</unique>
