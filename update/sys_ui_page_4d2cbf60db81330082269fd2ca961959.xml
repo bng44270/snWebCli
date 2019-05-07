@@ -218,6 +218,9 @@ DomTerm.prototype = {
 		else if (event.keyCode == 13) {
 			this.runCommandScript();
 		}
+		else if (event.ctrlKey && event.keyCode == 192) {
+			
+		}
 	},
 	runCommandScript : function() {
 		var inputText = document.getElementById(this.settings.inputId).value;
@@ -256,39 +259,44 @@ DomTerm.prototype.constructor = DomTerm;
 
 var snCli = null;
 
-function viewProfile() {
-	if (document.getElementById('profilelist').value != 'NONE') {
-		document.getElementById('profilelist').style.display = 'none';
-		LoadTerm('myterminal',document.getElementById('profilelist').value);
+function initiateCLI() {
+	document.getElementById('startbutton').style.display = 'none';
+	
+	var urlParams = getUrlParams();
+	var loadProfile = "";
+	
+	for (var i = 0; i < urlParams.length; i++) {
+		if (urlParams[i].arg == 'loadprofile' && urlParams[i].value.length > 0) {
+			loadProfile = urlParams[i].value;
+		}
+	}
+	
+	if (loadProfile.length > 0) {
+		loadTerm('myterminal',loadProfile);
+	}
+	else {
+		var callServerApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
+		callServerApi.addParam('sysparm_name','getDefaultProfile');
+		callServerApi.addParam('sysparm_scope','x_293397_web_cli');
+		callServerApi.getXML(function(response) {
+			var profileSysId = response.responseXML.documentElement.getAttribute('answer');
+			loadTerm('myterminal',profileSysId);
+		});
 	}
 }
 
-function loadList() {
-	document.getElementById('listbutton').style.display = 'none';
-	document.getElementById('profilelist').style.display = 'block';
-	document.getElementById('profilelist').innerHTML = '';
-	var noneOpt = document.createElement('option');
-	noneOpt.value = 'NONE';
-	noneOpt.innerHTML = 'Choose a Profile';
-	document.getElementById('profilelist').appendChild(noneOpt);
-	
-	var configureCliApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
-	configureCliApi.addParam('sysparm_name','getProfileList');
-	
-	configureCliApi.getXML(function(response) {
-		var profileData = JSON.parse(response.responseXML.documentElement.getAttribute('answer'));
-		profileData.forEach(function(thisProfile) {
-			var thisOpt = document.createElement('option');
-			thisOpt.value = thisProfile.sysid;
-			thisOpt.innerHTML = thisProfile.label;
-			document.getElementById('profilelist').appendChild(thisOpt);
-			thisOpt = null;
-		});
+
+function getUrlParams() {
+	return window.location.search.replace(/^\?/,'').split('&').map(function(thisArg) {
+		return {
+			'arg' : thisArg.split('=')[0],
+			'value' : thisArg.split('=')[1]
+		};
 	});
+	
 }
 
-
-function LoadTerm(divid,terminalProfile) {
+function loadTerm(divid,terminalProfile) {
 	snCli = new DomTerm(divid);
 	
 	snCli.addCommand('clear',function(command) {
@@ -459,8 +467,7 @@ function ClickStart() {
         <endpoint>x_293397_web_cli_run_terminal.do</endpoint>
         <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
 <j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
-	<input type="button" value="List Terminals" onClick="loadList();" id="listbutton" />
-	<select style="display:none;" id="profilelist" onChange="viewProfile();"></select>
+	<input type="button" value="Start Terminal" onClick="initiateCLI();" id="startbutton" style="width:200px;height:50px;font-size:14pt;font-weight:bold;" />
 	<div id="myterminal"></div>
 </j:jelly>]]></html>
         <name>run_terminal</name>
@@ -469,13 +476,13 @@ function ClickStart() {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-23 15:34:50</sys_created_on>
         <sys_id>4d2cbf60db81330082269fd2ca961959</sys_id>
-        <sys_mod_count>162</sys_mod_count>
+        <sys_mod_count>170</sys_mod_count>
         <sys_name>run_terminal</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy/>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_ui_page_4d2cbf60db81330082269fd2ca961959</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-05-06 18:08:04</sys_updated_on>
+        <sys_updated_on>2019-05-07 00:56:06</sys_updated_on>
     </sys_ui_page>
 </record_update>

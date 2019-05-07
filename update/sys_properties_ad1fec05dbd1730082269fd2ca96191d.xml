@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices/>
+        <description>Please specificy the SYS_ID of the default CLI Profile</description>
+        <ignore_cache>false</ignore_cache>
+        <is_private>false</is_private>
+        <name>x_293397_web_cli.default_terminal_profile</name>
+        <read_roles/>
+        <suffix>default_terminal_profile</suffix>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-05-07 00:05:59</sys_created_on>
+        <sys_id>ad1fec05dbd1730082269fd2ca96191d</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>x_293397_web_cli.default_terminal_profile</sys_name>
+        <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
+        <sys_update_name>sys_properties_ad1fec05dbd1730082269fd2ca96191d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-05-07 00:41:45</sys_updated_on>
+        <type>string</type>
+        <value>5b89e0c5db01330082269fd2ca96190b</value>
+        <write_roles/>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=ad1fec05dbd1730082269fd2ca96191d"/>
+</record_update>
