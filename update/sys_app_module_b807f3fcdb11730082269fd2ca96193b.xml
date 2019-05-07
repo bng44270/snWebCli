@@ -20,14 +20,14 @@
         <override_menu_roles>false</override_menu_roles>
         <query/>
         <report/>
-        <roles>x_293397_web_cli.command_scripts_user</roles>
+        <roles>x_293397_web_cli.web_cli_user</roles>
         <sys_class_name>sys_app_module</sys_class_name>
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-05-06 20:00:27</sys_created_on>
         <sys_domain>global</sys_domain>
         <sys_domain_path>/</sys_domain_path>
         <sys_id>b807f3fcdb11730082269fd2ca96193b</sys_id>
-        <sys_mod_count>0</sys_mod_count>
+        <sys_mod_count>1</sys_mod_count>
         <sys_name>Active Scripts</sys_name>
         <sys_overrides/>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
@@ -35,7 +35,7 @@
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_app_module_b807f3fcdb11730082269fd2ca96193b</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-05-06 20:00:27</sys_updated_on>
+        <sys_updated_on>2019-05-07 19:38:45</sys_updated_on>
         <timeline_page/>
         <title>Active Scripts</title>
         <uncancelable>false</uncancelable>

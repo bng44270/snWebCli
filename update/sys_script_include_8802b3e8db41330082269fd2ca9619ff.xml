@@ -23,7 +23,66 @@ ConfigureCLI.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 		return JSON.stringify(returnValue);
 	},
 	getDefaultProfile : function() {
-		return gs.getProperty('x_293397_web_cli.default_terminal_profile');
+		var returnValue = "";
+		
+		var userUniqueId = this.getParameter('sysparm_cli_user_sys_id');
+		
+		var gr = new GlideRecord("sys_user_preference");
+		gr.addQuery("name", "default_user_terminal_profile");
+		gr.addQuery('user',userUniqueId);
+		gr.query();
+		if (gr.next()) {
+			var profileId = gr.getValue('value');
+			if (profileId.length > 0) {
+				returnValue = profileId;
+			}
+			else {
+				returnValue = gs.getProperty('x_293397_web_cli.default_terminal_profile');
+			}
+		}
+		else {
+			returnValue = gs.getProperty('x_293397_web_cli.default_terminal_profile');
+		}
+		return returnValue;
+	},
+	getDefaultUserProfile : function() {
+		var returnValue = "";
+		var gr = new GlideRecord("sys_user_preference");
+		gr.addQuery("name", "default_user_terminal_profile");
+		gr.addQuery('user',gs.getUserID());
+		gr.query();
+		if (gr.next()) {
+			returnValue = gr.getValue('value');
+		}
+		return returnValue;
+	},
+	setDefaultUserProfile : function() {
+		var returnValue = "";
+		
+		var profileUniqueId = this.getParameter('sysparm_cli_profile_sys_id');
+		profileUniqueId = (profileUniqueId == 'NONE') ? '' : profileUniqueId;
+		
+		var currentUserId = gs.getUserID();
+		var currentUserName = gs.getUserName();
+		
+		var gr = new GlideRecord("sys_user_preference");
+		gr.addQuery("name", "default_user_terminal_profile");
+		gr.addQuery('user',currentUserId);
+		gr.query();
+		if (gr.next()) {
+			gr.setValue('value',profileUniqueId);
+			returnValue = gr.update();
+		}
+		else {
+			gr.initialize();
+			gr.setValue("name", "default_user_terminal_profile");
+			gr.setValue('user',currentUserId);
+			gr.setValue('value',profileUniqueId);
+			gr.setValue('type','string');
+			gr.setValue('description','Default WebCLI profile for ' + currentUserName);
+			returnValue = gr.insert();
+		}
+		return returnValue;
 	},
 	loadProfile : function() {
 		var profileUniqueId = this.getParameter('sysparm_cli_profile_sys_id');
@@ -86,13 +145,13 @@ ConfigureCLI.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-23 15:06:21</sys_created_on>
         <sys_id>8802b3e8db41330082269fd2ca9619ff</sys_id>
-        <sys_mod_count>39</sys_mod_count>
+        <sys_mod_count>50</sys_mod_count>
         <sys_name>ConfigureCLI</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_script_include_8802b3e8db41330082269fd2ca9619ff</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-05-07 00:10:33</sys_updated_on>
+        <sys_updated_on>2019-05-07 20:55:05</sys_updated_on>
     </sys_script_include>
 </record_update>

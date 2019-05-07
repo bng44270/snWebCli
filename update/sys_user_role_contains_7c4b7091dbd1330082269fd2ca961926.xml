@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_user_role_contains">
+    <sys_user_role_contains action="INSERT_OR_UPDATE">
+        <contains display_value="x_293397_web_cli.profiles_user" name="x_293397_web_cli.profiles_user">48ee9fe8db01330082269fd2ca961991</contains>
+        <role display_value="x_293397_web_cli.web_cli_user" name="x_293397_web_cli.web_cli_user">c9eaf851dbd1330082269fd2ca961958</role>
+        <sys_class_name>sys_user_role_contains</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-05-07 19:37:08</sys_created_on>
+        <sys_id>7c4b7091dbd1330082269fd2ca961926</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>x_293397_web_cli.profiles_user.x_293397_web_cli.web_cli_user</sys_name>
+        <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
+        <sys_update_name>sys_user_role_contains_7c4b7091dbd1330082269fd2ca961926</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-05-07 19:37:08</sys_updated_on>
+    </sys_user_role_contains>
+</record_update>

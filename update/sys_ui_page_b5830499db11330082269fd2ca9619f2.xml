@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[function saveDefaultProfile() {
+	var newProfileId = document.getElementById('defaultuserprofile').value;
+	
+	var callServerApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
+	callServerApi.addParam('sysparm_name','setDefaultUserProfile');
+	callServerApi.addParam('sysparm_cli_profile_sys_id',newProfileId);
+	callServerApi.addParam('sysparm_scope','x_293397_web_cli');
+	callServerApi.getXML(function(response) {
+		var serverData = response.responseXML.documentElement.getAttribute('answer');
+		if (serverData.length > 0) {
+			if (newProfileId == "NONE") {
+				document.getElementById('messagetext').innerHTML = "Reset to default profile";
+			}
+			else {
+				document.getElementById('messagetext').innerHTML = "Successfully set profile";
+			}
+		}
+		else {
+			document.getElementById('messagetext').innerHTML = "Error setting profile";
+		}
+	});
+}
+
+function resetMessageText() {
+	document.getElementById('messagetext').innerHTML = "";
+}
+
+function loadProfileList() {
+	var callServerApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
+	callServerApi.addParam('sysparm_name','getProfileList');
+	callServerApi.addParam('sysparm_scope','x_293397_web_cli');
+	callServerApi.getXML(function(response) {
+		var serverData = JSON.parse(response.responseXML.documentElement.getAttribute('answer'));
+		serverData.forEach(function(thisItem) {
+			var newOption = document.createElement('option');
+			newOption.value = thisItem.sysid;
+			newOption.innerHTML = thisItem.label;
+			document.getElementById('defaultuserprofile').appendChild(newOption);
+		});
+		setDefaultUserProfile();
+	});
+}
+
+function setDefaultUserProfile() {
+	var callServerApi = new GlideAjax('x_293397_web_cli.ConfigureCLI');
+	callServerApi.addParam('sysparm_name','getDefaultUserProfile');
+	callServerApi.addParam('sysparm_scope','x_293397_web_cli');
+	callServerApi.getXML(function(response) {
+		var serverData = response.responseXML.documentElement.getAttribute('answer');
+		if (serverData.length > 0) {
+			document.getElementById('defaultuserprofile').value = serverData;
+		}
+		else {
+			document.getElementById('defaultuserprofile').value = 'NONE';
+		}
+	});
+}]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_293397_web_cli_set_user_profile.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<h1>User preferences</h1>
+	<h3>Choose the WebCLI Profile you wish to use</h3>
+	<select id="defaultuserprofile" onChange="resetMessageText();">
+		<option value="NONE">-- Use System Default --</option>
+	</select><span id="messagetext" style="background-color:#ffcccc;"></span><br/>
+	<input type="button" value="Save" onClick="saveDefaultProfile()" />
+	<script>
+		addLoadEvent( function() {
+			loadProfileList();
+		});
+	</script>
+</j:jelly>]]></html>
+        <name>set_user_profile</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-05-07 15:50:46</sys_created_on>
+        <sys_id>b5830499db11330082269fd2ca9619f2</sys_id>
+        <sys_mod_count>12</sys_mod_count>
+        <sys_name>set_user_profile</sys_name>
+        <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
+        <sys_update_name>sys_ui_page_b5830499db11330082269fd2ca9619f2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-05-07 18:55:09</sys_updated_on>
+    </sys_ui_page>
+</record_update>
