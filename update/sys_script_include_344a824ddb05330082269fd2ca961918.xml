@@ -29,6 +29,19 @@ WebCLIServer.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 		}
 		return JSON.stringify(returnValue);
 	},
+	tableExists : function() {
+		var returnValue = '';
+		
+		var tableName = this.getParameter('sysparm_cli_table_name');
+		
+		var gr = new GlideRecord("sys_db_object");
+		gr.addQuery("name", tableName);
+		gr.query();
+		if (gr.next()) {
+			returnValue = 'found';
+		}
+		return returnValue;
+	},
 	getTableSchema  : function() {
 		var returnValue = {
 			tableMap : "",
@@ -137,113 +150,113 @@ WebCLIServer.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 			gr.query();
 			while (gr.next()) {
 				returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
+				}
 			}
-		}
-		else if (objType == 'sys_script_client') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("table",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if (objType == 'sys_ui_action') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("table",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if (objType == 'sys_ui_policy') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("table",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('short_description'),'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if (objType == 'sys_data_policy2') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("model_table",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('short_description'),'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if (objType == 'sysevent_email_action') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("collection",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if (objType == 'sys_dictionary') {
-			returnData =  this.getTableFields(objTable).map(function(thisField) {
-				return {'name':thisField.element + "(" + thisField.type + ")", 'sys_id':thisField.sys_id};
-			});
-		}
-		else if (objType == 'sys_dictionary_override') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("name",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('element'),'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if (objType == 'sys_security_acl') {
-			gr = new GlideRecord(objType);
-			gr.addEncodedQuery('nameSTARTSWITH' + objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('name') + " for " + gr.getValue('operation') + " on " + gr.getValue('type') + "with roles (" + this.getRolesForAcl(gr.getUniqueValue()).join(" ") + ")",'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if (objType == 'sys_ui_style') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("name",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('element'),'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if (objType == 'sysrule_view') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("table",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
-			}
-		}
-		else if(objType == 'hierarchy') {
-			var tableDepends = new GlideTableHierarchy(objTable);
-			
-			returnData = tableDepends.getTables();
-		}
-		else if (objType == 'sys_db_object') {
-			gr = new GlideRecord(objType);
-			gr.addQuery("name",objTable);
-			gr.query();
-			while (gr.next()) {
-				returnData.push({'name':gr.getValue('label') + ' (' + gr.getValue('name') + ')','sys_id':gr.getUniqueValue()});
-			}
-		}
-		return JSON.stringify(returnData);
-	},
-	type: 'WebCLIServer'
-});]]></script>
+			else if (objType == 'sys_script_client') {
+				gr = new GlideRecord(objType);
+				gr.addQuery("table",objTable);
+				gr.query();
+				while (gr.next()) {
+					returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
+					}
+				}
+				else if (objType == 'sys_ui_action') {
+					gr = new GlideRecord(objType);
+					gr.addQuery("table",objTable);
+					gr.query();
+					while (gr.next()) {
+						returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
+						}
+					}
+					else if (objType == 'sys_ui_policy') {
+						gr = new GlideRecord(objType);
+						gr.addQuery("table",objTable);
+						gr.query();
+						while (gr.next()) {
+							returnData.push({'name':gr.getValue('short_description'),'sys_id':gr.getUniqueValue()});
+							}
+						}
+						else if (objType == 'sys_data_policy2') {
+							gr = new GlideRecord(objType);
+							gr.addQuery("model_table",objTable);
+							gr.query();
+							while (gr.next()) {
+								returnData.push({'name':gr.getValue('short_description'),'sys_id':gr.getUniqueValue()});
+								}
+							}
+							else if (objType == 'sysevent_email_action') {
+								gr = new GlideRecord(objType);
+								gr.addQuery("collection",objTable);
+								gr.query();
+								while (gr.next()) {
+									returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
+									}
+								}
+								else if (objType == 'sys_dictionary') {
+									returnData =  this.getTableFields(objTable).map(function(thisField) {
+										return {'name':thisField.element + "(" + thisField.type + ")", 'sys_id':thisField.sys_id};
+										});
+									}
+									else if (objType == 'sys_dictionary_override') {
+										gr = new GlideRecord(objType);
+										gr.addQuery("name",objTable);
+										gr.query();
+										while (gr.next()) {
+											returnData.push({'name':gr.getValue('element'),'sys_id':gr.getUniqueValue()});
+											}
+										}
+										else if (objType == 'sys_security_acl') {
+											gr = new GlideRecord(objType);
+											gr.addEncodedQuery('nameSTARTSWITH' + objTable);
+											gr.query();
+											while (gr.next()) {
+												returnData.push({'name':gr.getValue('name') + " for " + gr.getValue('operation') + " on " + gr.getValue('type') + "with roles (" + this.getRolesForAcl(gr.getUniqueValue()).join(" ") + ")",'sys_id':gr.getUniqueValue()});
+												}
+											}
+											else if (objType == 'sys_ui_style') {
+												gr = new GlideRecord(objType);
+												gr.addQuery("name",objTable);
+												gr.query();
+												while (gr.next()) {
+													returnData.push({'name':gr.getValue('element'),'sys_id':gr.getUniqueValue()});
+													}
+												}
+												else if (objType == 'sysrule_view') {
+													gr = new GlideRecord(objType);
+													gr.addQuery("table",objTable);
+													gr.query();
+													while (gr.next()) {
+														returnData.push({'name':gr.getValue('name'),'sys_id':gr.getUniqueValue()});
+														}
+													}
+													else if(objType == 'hierarchy') {
+														var tableDepends = new GlideTableHierarchy(objTable);
+														
+														returnData = tableDepends.getTables();
+													}
+													else if (objType == 'sys_db_object') {
+														gr = new GlideRecord(objType);
+														gr.addQuery("name",objTable);
+														gr.query();
+														while (gr.next()) {
+															returnData.push({'name':gr.getValue('label') + ' (' + gr.getValue('name') + ')','sys_id':gr.getUniqueValue()});
+															}
+														}
+														return JSON.stringify(returnData);
+													},
+													type: 'WebCLIServer'
+												});]]></script>
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2019-04-24 20:43:02</sys_created_on>
         <sys_id>344a824ddb05330082269fd2ca961918</sys_id>
-        <sys_mod_count>103</sys_mod_count>
+        <sys_mod_count>104</sys_mod_count>
         <sys_name>WebCLIServer</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
         <sys_update_name>sys_script_include_344a824ddb05330082269fd2ca961918</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-05-06 16:26:06</sys_updated_on>
+        <sys_updated_on>2019-06-11 16:30:47</sys_updated_on>
     </sys_script_include>
 </record_update>
