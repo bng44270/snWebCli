@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><database>
     <element label="Command Scripts" max_length="40" name="x_293397_web_cli_command_scripts" type="collection">
-        <element label="Active" max_length="40" name="active" type="boolean"/>
+        <element attributes="edge_encryption_enabled=true" label="Active" max_length="40" name="active" type="boolean"/>
         <element display="true" label="Description" max_length="200" name="description" type="string"/>
         <element label="Name" max_length="40" name="name" type="string"/>
         <element attributes="glide.ui.javascript_editor=false" label="Script" max_length="4000" name="script" type="string"/>

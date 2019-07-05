@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?><database>
     <element label="Commands" max_length="40" name="x_293397_web_cli_code_entries" type="collection">
-        <element label="Active" max_length="40" name="active" type="boolean"/>
+        <element attributes="edge_encryption_enabled=true" label="Active" max_length="40" name="active" type="boolean"/>
         <element display="true" label="Description" max_length="4000" name="description" type="string"/>
         <element label="Name" max_length="40" name="name" type="string"/>
-        <element label="Script" max_length="8000" name="script" type="script"/>
+        <element attributes="edge_encryption_enabled=true" label="Script" max_length="8000" name="script" type="script"/>
         <element label="Usage" max_length="4000" name="usage" type="string"/>
     </element>
 </database>

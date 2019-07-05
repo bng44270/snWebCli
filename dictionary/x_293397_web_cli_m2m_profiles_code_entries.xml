@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><database>
     <element label="Web Cli M2m Profiles Code Entries" max_length="40" name="x_293397_web_cli_m2m_profiles_code_entries" type="collection">
-        <element label="Code Entries" max_length="32" name="code_entries" reference="x_293397_web_cli_code_entries" type="reference"/>
-        <element label="Profiles" max_length="32" name="profiles" reference="x_293397_web_cli_profiles" type="reference"/>
+        <element attributes="edge_encryption_enabled=true" label="Code Entries" max_length="32" name="code_entries" reference="x_293397_web_cli_code_entries" type="reference"/>
+        <element attributes="edge_encryption_enabled=true" label="Profiles" max_length="32" name="profiles" reference="x_293397_web_cli_profiles" type="reference"/>
         <index name="index">
             <element name="code_entries"/>
         </index>
