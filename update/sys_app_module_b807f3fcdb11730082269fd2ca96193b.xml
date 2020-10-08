@@ -3,7 +3,6 @@
         <active>true</active>
         <application display_value="Web CLI">351e5be8db01330082269fd2ca961904</application>
         <assessment/>
-        <content_page/>
         <device_type/>
         <filter table="x_293397_web_cli_command_scripts">active=true^EQ<item endquery="false" field="active" goto="false" newquery="false" operator="=" or="false" value="true"/>
             <item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/>

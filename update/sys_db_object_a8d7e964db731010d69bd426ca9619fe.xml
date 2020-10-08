@@ -3,6 +3,7 @@
         <access>public</access>
         <actions_access>false</actions_access>
         <alter_access>false</alter_access>
+        <caller_access/>
         <client_scripts_access>false</client_scripts_access>
         <configuration_access>false</configuration_access>
         <create_access>false</create_access>
@@ -10,29 +11,30 @@
         <delete_access>false</delete_access>
         <extension_model/>
         <is_extendable>false</is_extendable>
-        <label>Profiles</label>
+        <label>Commands</label>
         <live_feed_enabled>false</live_feed_enabled>
-        <name>x_293397_web_cli_profiles</name>
+        <name>x_293397_web_cli_code_entries</name>
         <number_ref/>
         <provider_class/>
         <read_access>true</read_access>
+        <scriptable_table>false</scriptable_table>
         <super_class/>
         <sys_class_code/>
         <sys_class_name>sys_db_object</sys_class_name>
         <sys_class_path/>
         <sys_created_by>admin</sys_created_by>
-        <sys_created_on>2019-04-24 02:33:40</sys_created_on>
-        <sys_id>a834d238db09330082269fd2ca96194e</sys_id>
-        <sys_mod_count>0</sys_mod_count>
-        <sys_name>Profiles</sys_name>
+        <sys_created_on>2019-04-24 17:03:02</sys_created_on>
+        <sys_id>a8d7e964db731010d69bd426ca9619fe</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>Commands</sys_name>
         <sys_package display_value="Web CLI" source="x_293397_web_cli">88edd7a8db01330082269fd2ca9619c5</sys_package>
         <sys_policy/>
         <sys_scope display_value="Web CLI">88edd7a8db01330082269fd2ca9619c5</sys_scope>
-        <sys_update_name>sys_db_object_a834d238db09330082269fd2ca96194e</sys_update_name>
+        <sys_update_name>sys_db_object_a8d7e964db731010d69bd426ca9619fe</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2019-04-24 02:33:40</sys_updated_on>
+        <sys_updated_on>2019-05-02 14:46:32</sys_updated_on>
         <update_access>false</update_access>
-        <user_role display_value="x_293397_web_cli.profiles_user" name="x_293397_web_cli.profiles_user">48ee9fe8db01330082269fd2ca961991</user_role>
+        <user_role display_value="x_293397_web_cli.code_entries_user" name="x_293397_web_cli.code_entries_user">385b594ddb81330082269fd2ca961925</user_role>
         <ws_access>true</ws_access>
     </sys_db_object>
 </record_update>
